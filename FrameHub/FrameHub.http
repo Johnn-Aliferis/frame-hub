@@ -1,0 +1,6 @@
+@FrameHub_HostAddress = http://localhost:5233
+
+GET {{FrameHub_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
