@@ -9,6 +9,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+//DotNetEnv.Env.Load("../../.env"); for future reference to get env values here , because .env is in solution items.
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
