@@ -8,7 +8,7 @@ public class GlobalExceptionMiddleware(
     ExceptionHandlingStrategy exceptionHandlingStrategy)
 
 {
-    public async Task InvokeAsync(HttpContext httpContext) 
+    public async Task InvokeAsync(HttpContext httpContext)
     {
         try
         {
