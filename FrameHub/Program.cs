@@ -1,3 +1,4 @@
+using DotNetEnv;
 using FrameHub.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,14 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+if (builder.Environment.IsDevelopment())
+{
+    Env.Load();
+}
+
+// For Database Extension
+builder.Services.AddDatabaseServices();
 
 // Exception Handlers Extension
 builder.Services.AddExceptionHandlers();

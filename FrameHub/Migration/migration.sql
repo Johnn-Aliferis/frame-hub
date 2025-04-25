@@ -10,8 +10,9 @@
     GO 
    
     -- Switch to the FrameHub database
-    USE Framehub;
+    USE FrameHub;
     GO 
+    
 -- Tables
         
     -- Users
@@ -84,6 +85,30 @@
                 REFERENCES [dbo].[Users](Id) ON DELETE CASCADE
             );
         END
+
+    -- SubscriptionPlans
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'SubscriptionPlans' AND type = 'U')
+        BEGIN
+            CREATE TABLE [dbo].[SubscriptionPlans] (
+                Id               INT PRIMARY KEY IDENTITY(1,1),
+                Guid             UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+                CreatedAt        DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                UpdatedAt        DATETIME2 NULL,
+                Status           BIT NOT NULL DEFAULT 1,
+                Code             NVARCHAR(20) NOT NULL UNIQUE,
+                Name             NVARCHAR(50) NOT NULL,
+                Description      NVARCHAR(200) NULL,
+                MaxUploads       INT NOT NULL,
+                MonthlyPrice     DECIMAL(10,2) NULL
+            );
+
+            -- Seed initial data
+            INSERT INTO [dbo].[SubscriptionPlans] (Code, Name, Description, MaxUploads, MonthlyPrice)
+            VALUES
+                ('Basic', 'Basic Plan', 'Free plan with limited access. Preview only.', 0, 0.00),
+                ('Pro', 'Pro Plan', 'Paid plan with extended uploads and features.', 3, 9.99),
+                ('Ultimate', 'Ultimate Plan', 'Maximum access to all features.', 20, 29.99);
+        END
         
      -- UserSubscription    
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'UserSubscription' AND type = 'U')
@@ -95,11 +120,14 @@
                 UpdatedAt           DATETIME2 NULL,
                 Status              BIT NOT NULL DEFAULT 1,
                 UserId              INT NOT NULL UNIQUE,
-                SubscriptionPlan    NVARCHAR(10) NOT NULL,
+                SubscriptionPlanId  INT NOT NULL,
                 AssignedAt          DATETIME2 NOT NULL,
                 ExpiresAt           DATETIME2 NULL
     
             CONSTRAINT FK_UserSubscription_Users FOREIGN KEY (UserId)
-                REFERENCES [dbo].[Users](Id) ON DELETE CASCADE
+                REFERENCES [dbo].[Users](Id) ON DELETE CASCADE,
+                
+            CONSTRAINT FK_UserSubscription_Plans FOREIGN KEY (SubscriptionPlanId)
+                REFERENCES SubscriptionPlans(Id) ON DELETE CASCADE
             );
         END
