@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FrameHub")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+60a52f49d48dd92b45e7a47e2a0ed1db538a84a8")]
 [assembly: System.Reflection.AssemblyProductAttribute("FrameHub")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FrameHub")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

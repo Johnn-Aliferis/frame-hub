@@ -6,8 +6,8 @@ public class UserInfo : BaseEntity
     public string? PhoneNumber { get; set; }
     public string? Bio { get; set; }
 
-    public int ProfilePictureId { get; set; }
-    public int UserId { get; set; }
+    public long? ProfilePictureId { get; set; }
+    public required long UserId { get; set; }
 
     public required User User { get; set; }
     public Photo? ProfilePicture { get; set; }
