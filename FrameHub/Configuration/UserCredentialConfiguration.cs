@@ -17,7 +17,11 @@ public class UserCredentialConfiguration : IEntityTypeConfiguration<UserCredenti
             .IsRequired()
             .HasMaxLength(100);
 
+        // Enforce uniqueness
         builder.HasIndex(uc => uc.Email)
+            .IsUnique();
+        
+        builder.HasIndex(uc => uc.UserId)
             .IsUnique();
 
         builder.Property(uc => uc.PasswordHash)

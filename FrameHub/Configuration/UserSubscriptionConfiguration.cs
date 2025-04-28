@@ -27,6 +27,10 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
             .IsRequired()
             .HasColumnType("datetime2");
         
+        // Enforce uniqueness
+        builder.HasIndex(us => us.UserId)
+            .IsUnique();
+        
         
         builder.HasOne(us => us.User)
             .WithOne(u => u.Subscription)

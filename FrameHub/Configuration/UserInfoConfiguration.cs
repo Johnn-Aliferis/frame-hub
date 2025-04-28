@@ -30,6 +30,10 @@ public class UserInfoConfiguration : IEntityTypeConfiguration<UserInfo>
         builder.Property(ui => ui.ProfilePictureId)
             .IsRequired(false);
         
+        // Enforce uniqueness
+        builder.HasIndex(ui => ui.UserId)
+            .IsUnique();
+        
         
         builder.HasOne(ui => ui.User)
             .WithOne(u => u.Info)

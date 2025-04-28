@@ -37,22 +37,26 @@
                 CreatedAt     DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
                 UpdatedAt     DATETIME2 NULL,
                 Status        BIT NOT NULL DEFAULT 1,
-                UserId        BIGINT NOT NULL UNIQUE,
-                Email         NVARCHAR(100) NOT NULL UNIQUE,
+                UserId        BIGINT NOT NULL,
+                Email         NVARCHAR(100) NOT NULL,
                 PasswordHash  NVARCHAR(256) NOT NULL
 
-                CONSTRAINT FK_UserCredential_Users FOREIGN KEY (UserId)
-                    REFERENCES [dbo].[Users](Id) ON DELETE CASCADE,
-                
-                CREATE UNIQUE INDEX IX_UserCredential_Email
-                    ON [dbo].[UserCredential] ([Email]);
+            CONSTRAINT FK_UserCredential_Users FOREIGN KEY (UserId)
+                REFERENCES [dbo].[Users](Id) ON DELETE CASCADE,
+    
             );
+
+            CREATE UNIQUE INDEX IX_UserCredential_Email
+                ON [dbo].[UserCredential] ([Email]);
+            
+            CREATE UNIQUE INDEX IX_UserCredential_UserId
+                ON [dbo].[UserCredential] ([UserId]);
         END
             
-    -- Photos    
+    -- Photo    
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'Photo' AND type = 'U')
         BEGIN
-            CREATE TABLE [dbo].[Photos] (
+            CREATE TABLE [dbo].[Photo] (
                 Id                  BIGINT PRIMARY KEY IDENTITY(1,1),
                 Guid                UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
                 CreatedAt           DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
@@ -82,11 +86,15 @@
                     PhoneNumber      NVARCHAR(20) NULL,
                     Bio              NVARCHAR(500) NULL,
                     ProfilePictureId BIGINT NULL,
-                    UserId           BIGINT NOT NULL UNIQUE
+                    UserId           BIGINT NOT NULL
     
             CONSTRAINT FK_UserInfo_Users FOREIGN KEY (UserId)
                 REFERENCES [dbo].[Users](Id) ON DELETE CASCADE
+                
             );
+
+            CREATE UNIQUE INDEX IX_UserInfo_UserId
+                ON [dbo].[UserInfo] ([UserId]);
         END
 
     -- SubscriptionPlan
@@ -98,12 +106,15 @@
                 CreatedAt        DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
                 UpdatedAt        DATETIME2 NULL,
                 Status           BIT NOT NULL DEFAULT 1,
-                Code             NVARCHAR(20) NOT NULL UNIQUE,
+                Code             NVARCHAR(20) NOT NULL,
                 Name             NVARCHAR(50) NOT NULL,
                 Description      NVARCHAR(200) NULL,
                 MaxUploads       BIGINT NOT NULL,
                 MonthlyPrice     DECIMAL(10,2) NULL
             );
+
+            CREATE UNIQUE INDEX IX_SubscriptionPlan_Code
+                ON [dbo].[SubscriptionPlan] ([Code]);
 
             -- Seed initial data
             INSERT INTO [dbo].[SubscriptionPlan] (Code, Name, Description, MaxUploads, MonthlyPrice)
@@ -122,7 +133,7 @@
                 CreatedAt           DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
                 UpdatedAt           DATETIME2 NULL,
                 Status              BIT NOT NULL DEFAULT 1,
-                UserId              BIGINT NOT NULL UNIQUE,
+                UserId              BIGINT NOT NULL,
                 SubscriptionPlanId  BIGINT NOT NULL,
                 AssignedAt          DATETIME2 NOT NULL,
                 ExpiresAt           DATETIME2 NOT NULL
@@ -132,5 +143,9 @@
                 
             CONSTRAINT FK_UserSubscription_Plans FOREIGN KEY (SubscriptionPlanId)
                 REFERENCES SubscriptionPlan(Id) ON DELETE CASCADE
+
             );
+
+            CREATE UNIQUE INDEX IX_UserSubscription_UserId
+                ON [dbo].[UserSubscription] ([UserId]);
         END

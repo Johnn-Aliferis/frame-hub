@@ -26,10 +26,9 @@ public class PhotoConfiguration :  IEntityTypeConfiguration<Photo>
         builder.Property(p => p.Tags)
             .IsRequired(false)
             .HasMaxLength(500);
-        
+
         builder.Property(p => p.IsProfilePicture)
-            .IsRequired()
-            .HasColumnType("bit");
+            .IsRequired();
         
         builder.HasOne(p => p.User)
             .WithMany(u => u.Photos)
