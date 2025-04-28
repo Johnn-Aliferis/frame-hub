@@ -6,10 +6,10 @@ namespace FrameHub.Controllers;
 
 [ApiController]
 [Route("api")]
-public class WeatherForecastController(ILogger<WeatherForecastController> logger) : ControllerBase
+public class AuthenticationController(ILogger<AuthenticationController> logger) : ControllerBase
 {
-    [HttpGet]
-    [Route("/test")]
+    [HttpPost]
+    [Route("/login")]
     public ActionResult<string> Get()
     {
         throw new GeneralException("Test exception", HttpStatusCode.InternalServerError);

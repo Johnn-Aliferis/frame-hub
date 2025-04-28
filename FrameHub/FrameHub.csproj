@@ -26,7 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Model\" />
+      <Folder Include="Repository\" />
     </ItemGroup>
 
 </Project>
