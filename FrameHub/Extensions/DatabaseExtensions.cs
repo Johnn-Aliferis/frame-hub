@@ -15,8 +15,9 @@ public static class DatabaseExtensions
         var connectionString = $"Server={server};Database={db};User Id={user};Password={password};TrustServerCertificate=True;";
         
         // Register DB context
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        services.AddDbContext<AppDbContext>(options => options
+                .UseSqlServer(connectionString)
+                .UseLazyLoadingProxies());
 
         return services;
     }
