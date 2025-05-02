@@ -14,8 +14,9 @@ public class LoginStrategyFactory(IServiceProvider serviceProvider) : ILoginStra
         return loginMethod.ToLower() switch
         {
             "default" => serviceProvider.GetRequiredService<DefaultLoginStrategy>(),
-            "sso" => serviceProvider.GetRequiredService<GoogleLoginStrategy>(),
+            "google" => serviceProvider.GetRequiredService<GoogleLoginStrategy>(),
             _ => throw new ArgumentException($"Unsupported login method: {loginMethod}")
         };
+        // Todo : Add above a custom exception via our middleware for better error readability.
     }
 }

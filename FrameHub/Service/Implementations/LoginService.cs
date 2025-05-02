@@ -1,4 +1,4 @@
-﻿using FrameHub.Model.Dto;
+﻿using FrameHub.Model.Dto.Login;
 using FrameHub.Service.Interfaces;
 
 namespace FrameHub.Service.Implementations;

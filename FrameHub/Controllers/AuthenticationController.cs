@@ -1,18 +1,18 @@
-using System.Net;
-using FrameHub.Exceptions;
+using FrameHub.Model.Dto.Login;
+using FrameHub.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FrameHub.Controllers;
 
 [ApiController]
 [Route("api")]
-public class AuthenticationController(ILogger<AuthenticationController> logger) : ControllerBase
+public class AuthenticationController(ILoginService loginService) : ControllerBase
 {
     [HttpPost]
     [Route("/login")]
-    public ActionResult<string> Get()
+    public async Task<ActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
     {
-        throw new GeneralException("Test exception", HttpStatusCode.InternalServerError);
-        return "Hello from /test!";
+        var response =  await loginService.LoginAsync(loginRequestDto);
+        return Ok(response);
     }
 }

@@ -1,5 +1,9 @@
 using DotNetEnv;
 using FrameHub.Extensions;
+using FrameHub.Service.Factories;
+using FrameHub.Service.Implementations;
+using FrameHub.Service.Interfaces;
+using FrameHub.Service.Strategies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +18,13 @@ if (builder.Environment.IsDevelopment())
 {
     Env.Load();
 }
+
+
+// Later to be added in extensions :
+builder.Services.AddTransient<ILoginService, LoginService>();
+builder.Services.AddTransient<ILoginStrategyFactory, LoginStrategyFactory>();
+builder.Services.AddTransient<DefaultLoginStrategy>();
+builder.Services.AddTransient<GoogleLoginStrategy>();
 
 // For Database Extension
 builder.Services.AddDatabaseServices();
