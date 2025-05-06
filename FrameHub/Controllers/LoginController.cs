@@ -1,4 +1,5 @@
 using FrameHub.Model.Dto.Login;
+using FrameHub.Model.Dto.Registration;
 using FrameHub.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,7 @@ namespace FrameHub.Controllers;
 
 [ApiController]
 [Route("api")]
-public class AuthenticationController(ILoginService loginService) : ControllerBase
+public class LoginController(ILoginService loginService) : ControllerBase
 {
     [HttpPost]
     [Route("/login")]
@@ -15,4 +16,12 @@ public class AuthenticationController(ILoginService loginService) : ControllerBa
         var response =  await loginService.LoginAsync(loginRequestDto);
         return Ok(response);
     }
+    
+    // [HttpPost]
+    // [Route("/register")]
+    // public async Task<ActionResult> Login([FromBody] RegistrationRequestDto registrationRequestDto)
+    // {
+    //     var response =  await loginService.LoginAsync(loginRequestDto);
+    //     return Ok(response);
+    // }
 }
