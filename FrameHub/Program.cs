@@ -1,5 +1,7 @@
 using DotNetEnv;
 using FrameHub.Extensions;
+using FrameHub.Repository.Implementations;
+using FrameHub.Repository.Interfaces;
 using FrameHub.Service.Factories;
 using FrameHub.Service.Implementations;
 using FrameHub.Service.Interfaces;
@@ -22,9 +24,15 @@ if (builder.Environment.IsDevelopment())
 
 // Later to be added in extensions :
 builder.Services.AddTransient<ILoginService, LoginService>();
+builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 builder.Services.AddTransient<ILoginStrategyFactory, LoginStrategyFactory>();
+builder.Services.AddTransient<IRegistrationStrategyFactory, RegistrationStrategyFactory>();
 builder.Services.AddTransient<DefaultLoginStrategy>();
+builder.Services.AddTransient<DefaultRegistrationStrategy>();
 builder.Services.AddTransient<GoogleLoginStrategy>();
+builder.Services.AddTransient<GoogleRegistrationStrategy>();
+
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
 // For Database Extension
 builder.Services.AddDatabaseServices();

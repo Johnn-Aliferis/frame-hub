@@ -5,7 +5,7 @@ namespace FrameHub.Service.Strategies;
 
 public class GoogleRegistrationStrategy : IRegistrationStrategy
 {
-    public Task<RegistrationResponseDto> RegisterAsync(RegistrationRequestDto registrationRequestDto)
+    public async Task<RegistrationResponseDto> RegisterAsync(RegistrationRequestDto registrationRequestDto)
     {
         // Google SSO Registration to be implemented.
         throw new NotImplementedException();

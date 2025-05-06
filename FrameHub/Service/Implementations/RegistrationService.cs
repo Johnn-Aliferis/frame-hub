@@ -7,7 +7,6 @@ public class RegistrationService(IRegistrationStrategyFactory registrationStrate
 {
     public async Task<RegistrationResponseDto> RegisterAsync(RegistrationRequestDto registrationRequestDto)
     {
-        // Todo : Possible handling of validations
         var registrationStrategy = registrationStrategyFactory.DetermineRegistrationStrategy(registrationRequestDto.RegistrationMethod);
         var registrationResponse = await registrationStrategy.RegisterAsync(registrationRequestDto);
         

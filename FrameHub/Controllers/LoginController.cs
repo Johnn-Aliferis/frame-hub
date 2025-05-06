@@ -16,12 +16,4 @@ public class LoginController(ILoginService loginService) : ControllerBase
         var response =  await loginService.LoginAsync(loginRequestDto);
         return Ok(response);
     }
-    
-    // [HttpPost]
-    // [Route("/register")]
-    // public async Task<ActionResult> Login([FromBody] RegistrationRequestDto registrationRequestDto)
-    // {
-    //     var response =  await loginService.LoginAsync(loginRequestDto);
-    //     return Ok(response);
-    // }
 }
