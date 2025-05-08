@@ -39,7 +39,9 @@
                 Status        BIT NOT NULL DEFAULT 1,
                 UserId        BIGINT NOT NULL,
                 Email         NVARCHAR(100) NOT NULL,
-                PasswordHash  NVARCHAR(256) NOT NULL
+                PasswordHash  NVARCHAR(256) NOT NULL,
+                Provider      NVARCHAR(50) NOT NULL,
+                ExternalId    NVARCHAR(100) NOT NULL
 
             CONSTRAINT FK_UserCredential_Users FOREIGN KEY (UserId)
                 REFERENCES [dbo].[Users](Id) ON DELETE CASCADE,

@@ -4,9 +4,11 @@
 #pragma warning disable CS8618 // Non-nullable field is uninitialized
 public class UserCredential : BaseEntity
 {
-    public required int UserId { get; set; }
+    public long UserId { get; set; }
     public required string Email { get; set; }
     public required string PasswordHash { get; set; }
+    public required string Provider { get; set; }
+    public string? ExternalId { get; set; }
 
     public virtual required User User { get; set; }
 }

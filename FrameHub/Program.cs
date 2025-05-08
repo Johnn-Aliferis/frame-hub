@@ -33,12 +33,17 @@ builder.Services.AddTransient<GoogleLoginStrategy>();
 builder.Services.AddTransient<GoogleRegistrationStrategy>();
 
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
 
 // For Database Extension
 builder.Services.AddDatabaseServices();
 
 // Exception Handlers Extension
 builder.Services.AddExceptionHandlers();
+
+// Automapper Extension
+builder.Services.AddCustomAutoMapper();
 
 var app = builder.Build();
 

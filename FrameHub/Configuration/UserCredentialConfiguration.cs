@@ -27,6 +27,14 @@ public class UserCredentialConfiguration : IEntityTypeConfiguration<UserCredenti
         builder.Property(uc => uc.PasswordHash)
             .IsRequired()
             .HasMaxLength(256);
+        
+        builder.Property(uc => uc.Provider)
+            .IsRequired()
+            .HasMaxLength(50);
+        
+        builder.Property(uc => uc.ExternalId)
+            .IsRequired(false)
+            .HasMaxLength(100);
 
         builder.Property(uc => uc.UserId)
             .IsRequired();
