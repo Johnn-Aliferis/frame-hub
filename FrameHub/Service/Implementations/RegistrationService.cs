@@ -9,8 +9,6 @@ public class RegistrationService(IRegistrationStrategyFactory registrationStrate
     {
         var registrationStrategy = registrationStrategyFactory.DetermineRegistrationStrategy(registrationRequestDto.RegistrationMethod);
         var registrationResponse = await registrationStrategy.RegisterAsync(registrationRequestDto);
-        
-        // todo: handle here the response etc
-        throw new NotImplementedException();
+        return registrationResponse;
     }
 }

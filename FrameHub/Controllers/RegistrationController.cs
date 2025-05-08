@@ -9,8 +9,8 @@ namespace FrameHub.Controllers;
 public class RegistrationController(IRegistrationService registrationService) : ControllerBase
 {
     [HttpPost]
-    [Route("/register")]
-    public async Task<ActionResult> Login([FromBody] RegistrationRequestDto registrationRequestDto)
+    [Route("register")]
+    public async Task<ActionResult> Register([FromBody] RegistrationRequestDto registrationRequestDto)
     {
         var response =  await registrationService.RegisterAsync(registrationRequestDto);
         return Ok(response);

@@ -1,4 +1,6 @@
-﻿using FrameHub.Service.Interfaces;
+﻿using System.Net;
+using FrameHub.Exceptions;
+using FrameHub.Service.Interfaces;
 using FrameHub.Service.Strategies;
 
 namespace FrameHub.Service.Factories;
@@ -11,8 +13,7 @@ public class RegistrationStrategyFactory(IServiceProvider serviceProvider) : IRe
         {
             "default" => serviceProvider.GetRequiredService<DefaultRegistrationStrategy>(),
             "google" => serviceProvider.GetRequiredService<GoogleRegistrationStrategy>(),
-            _ => throw new ArgumentException($"Unsupported registration method: {registrationMethod}")
+            _ => throw new RegistrationException($"Unsupported registration method: {registrationMethod}", HttpStatusCode.BadRequest)
         };
-        // Todo : Add above a custom exception via our middleware for better error readability.
     }
 }

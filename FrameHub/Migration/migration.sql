@@ -111,7 +111,7 @@
                 Code             NVARCHAR(20) NOT NULL,
                 Name             NVARCHAR(50) NOT NULL,
                 Description      NVARCHAR(200) NULL,
-                MaxUploads       BIGINT NOT NULL,
+                MaxUploads       INT NOT NULL,
                 MonthlyPrice     DECIMAL(10,2) NULL
             );
 
