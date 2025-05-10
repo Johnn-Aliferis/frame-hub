@@ -31,8 +31,7 @@ public class DefaultRegistrationStrategy(
         {
             await unitOfWork.RollbackAsync();
             logger.LogError(ex, "An error occurred during user registration.");
-            throw new RegistrationException("Something went wrong , please try again later",
-                HttpStatusCode.InternalServerError);
+            throw new RegistrationException(ex.Message, HttpStatusCode.InternalServerError);
         }
     }
 

@@ -41,7 +41,7 @@
                 Email         NVARCHAR(100) NOT NULL,
                 PasswordHash  NVARCHAR(256) NOT NULL,
                 Provider      NVARCHAR(50) NOT NULL,
-                ExternalId    NVARCHAR(100) NOT NULL
+                ExternalId    NVARCHAR(100) NULL
 
             CONSTRAINT FK_UserCredential_Users FOREIGN KEY (UserId)
                 REFERENCES [dbo].[Users](Id) ON DELETE CASCADE,
@@ -138,7 +138,7 @@
                 UserId              BIGINT NOT NULL,
                 SubscriptionPlanId  BIGINT NOT NULL,
                 AssignedAt          DATETIME2 NOT NULL,
-                ExpiresAt           DATETIME2 NOT NULL
+                ExpiresAt           DATETIME2 NULL
     
             CONSTRAINT FK_UserSubscription_Users FOREIGN KEY (UserId)
                 REFERENCES [dbo].[Users](Id) ON DELETE CASCADE,

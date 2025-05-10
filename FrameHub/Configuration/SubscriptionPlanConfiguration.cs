@@ -32,7 +32,7 @@ public class SubscriptionPlanConfiguration : IEntityTypeConfiguration<Subscripti
             .IsRequired();
 
         builder.Property(sp => sp.MonthlyPrice)
-            .IsRequired(false)
+            .IsRequired()
             .HasColumnType("decimal(10,2)");
     }
 }
