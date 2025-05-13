@@ -6,15 +6,16 @@ using FrameHub.Model.Dto.Registration;
 using FrameHub.Model.Entities;
 using FrameHub.Repository.Interfaces;
 using FrameHub.Service.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace FrameHub.Service.Strategies;
 
 public class DefaultRegistrationStrategy(
     IUnitOfWork unitOfWork,
     IUserRepository userRepository,
-    IMapper mapper,
     ILogger<DefaultRegistrationStrategy> logger,
-    ISubscriptionPlanRepository subscriptionPlanRepository) : IRegistrationStrategy
+    ISubscriptionPlanRepository subscriptionPlanRepository, 
+    UserManager<IdentityUser> userManager) : IRegistrationStrategy
 {
     private const string LocalProvider = "local";
 
@@ -43,25 +44,21 @@ public class DefaultRegistrationStrategy(
                 HttpStatusCode.Conflict);
         }
 
-        var user = new User { LastLogin = null };
-
-        // User Credential
-        var password = BCrypt.Net.BCrypt.HashPassword(registrationRequestDto.Password);
-        var credential = new UserCredential
+        var user = new IdentityUser
         {
+            UserName = registrationRequestDto.Email,
             Email = registrationRequestDto.Email,
-            PasswordHash = password,
-            Provider = LocalProvider,
-            ExternalId = null,
-            User = user
         };
-
-        // User Info 
+        
+        var response = await CreateUserAsync(user , registrationRequestDto.Password);
+        
+        
         var userInfo = new UserInfo
         {
             DisplayName = registrationRequestDto.DisplayName,
             PhoneNumber = registrationRequestDto.PhoneNumber,
-            User = user
+            User = response,
+            UserId = response.Id,
         };
 
         // User subscription
@@ -76,21 +73,38 @@ public class DefaultRegistrationStrategy(
         {
             AssignedAt = DateTime.UtcNow,
             User = user,
+            UserId = response.Id,
             SubscriptionPlan = subscriptionPlan
         };
 
-        user.Credential = credential;
-        user.Info = userInfo;
-        user.Subscription = userSubscription;
+        await userRepository.SaveUserInfoAsync(userInfo);
+        await userRepository.SaveUserSubscriptionAsync(userSubscription);
 
-        var savedUser = await userRepository.SaveUserAsync(user);
+        var registrationResponse = new RegistrationResponseDto
+        {
+            UserId = response.Id,
+            Email = response.Email!,
+            UserName = response.Email!
+        };
 
-        return mapper.Map<RegistrationResponseDto>(savedUser);
+        return registrationResponse;
     }
 
     private async Task<bool> UserExists(string email)
     {
-        var user = await userRepository.FindUserCredentialByEmailAsync(email);
+        var user = await userRepository.FindUserByEmailAsync(email);
         return user != null;
+    }
+
+
+    private async Task<IdentityUser> CreateUserAsync(IdentityUser identityUser , string password)
+    {
+        var result = await userManager.CreateAsync(identityUser, password);
+        if (!result.Succeeded)
+        {
+            throw new RegistrationException(string.Join(", ", result.Errors.Select(e => e.Description)),
+                HttpStatusCode.InternalServerError);
+        }
+        return identityUser;
     }
 }

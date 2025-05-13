@@ -1,4 +1,5 @@
 using DotNetEnv;
+using FrameHub.ContextConfiguration;
 using FrameHub.Extensions;
 using FrameHub.Repository.Implementations;
 using FrameHub.Repository.Interfaces;
@@ -6,6 +7,7 @@ using FrameHub.Service.Factories;
 using FrameHub.Service.Implementations;
 using FrameHub.Service.Interfaces;
 using FrameHub.Service.Strategies;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +37,12 @@ builder.Services.AddTransient<GoogleRegistrationStrategy>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
+
+builder.Services.AddIdentityCore<IdentityUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
 
 // For Database Extension
 builder.Services.AddDatabaseServices();

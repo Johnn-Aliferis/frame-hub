@@ -6,6 +6,6 @@ public static class AutoMapperExtensions
 {
     public static void AddCustomAutoMapper(this IServiceCollection services)
     {
-        services.AddAutoMapper(typeof(User));
+        // Add Automapper config here...
     }
 }

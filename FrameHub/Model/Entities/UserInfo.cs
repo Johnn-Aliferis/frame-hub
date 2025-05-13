@@ -1,4 +1,6 @@
-﻿namespace FrameHub.Model.Entities;
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace FrameHub.Model.Entities;
 
 public class UserInfo : BaseEntity
 {
@@ -7,8 +9,8 @@ public class UserInfo : BaseEntity
     public string? Bio { get; set; }
 
     public long? ProfilePictureId { get; set; }
-    public long UserId { get; set; }
+    public required string UserId { get; set; }
 
-    public virtual required User User { get; set; }
+    public virtual required IdentityUser User { get; set; }
     public virtual Photo? ProfilePicture { get; set; }
 }

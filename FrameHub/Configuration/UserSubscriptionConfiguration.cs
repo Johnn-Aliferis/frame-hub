@@ -12,9 +12,9 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
         builder.ToTable("UserSubscription");
         builder.ConfigureBaseEntity();
         
-        
         builder.Property(us => us.UserId)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(450);
 
         builder.Property(us => us.SubscriptionPlanId)
             .IsRequired();
@@ -33,7 +33,7 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
         
         
         builder.HasOne(us => us.User)
-            .WithOne(u => u.Subscription)
+            .WithOne()
             .HasForeignKey<UserSubscription>(us => us.UserId)
             .OnDelete(DeleteBehavior.Cascade);
         

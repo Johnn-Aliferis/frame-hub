@@ -2,10 +2,7 @@
 
 public class RegistrationResponseDto
 {
-    public required long Id { get; set; }
-    public required DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public required string Status { get; set; }
-    public DateTime? LastLogin { get; set; }
-    public required Guid Guid { get; set; }
+    public required string UserId { get; set; } 
+    public required string Email { get; set; } 
+    public required string UserName { get; set; }
 }

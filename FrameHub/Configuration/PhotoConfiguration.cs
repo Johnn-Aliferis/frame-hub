@@ -11,9 +11,10 @@ public class PhotoConfiguration :  IEntityTypeConfiguration<Photo>
     {
         builder.ToTable("Photo");
         builder.ConfigureBaseEntity();
-        
+
         builder.Property(p => p.UserId)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(450);
         
         builder.Property(p => p.StorageUrl)
             .IsRequired()
@@ -31,7 +32,7 @@ public class PhotoConfiguration :  IEntityTypeConfiguration<Photo>
             .IsRequired();
         
         builder.HasOne(p => p.User)
-            .WithMany(u => u.Photos)
+            .WithMany()
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }

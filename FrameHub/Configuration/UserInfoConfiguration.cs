@@ -25,7 +25,8 @@ public class UserInfoConfiguration : IEntityTypeConfiguration<UserInfo>
             .HasMaxLength(500);
         
         builder.Property(ui => ui.UserId)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(450);
         
         builder.Property(ui => ui.ProfilePictureId)
             .IsRequired(false);
@@ -36,7 +37,7 @@ public class UserInfoConfiguration : IEntityTypeConfiguration<UserInfo>
         
         
         builder.HasOne(ui => ui.User)
-            .WithOne(u => u.Info)
+            .WithOne()
             .HasForeignKey<UserInfo>(ui => ui.UserId)
             .OnDelete(DeleteBehavior.Cascade);
         

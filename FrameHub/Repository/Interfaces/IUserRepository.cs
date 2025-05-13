@@ -1,14 +1,15 @@
 ﻿using FrameHub.Model.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace FrameHub.Repository.Interfaces;
 
 public interface IUserRepository
 {
-    Task<User?> FindUserByIdAsync(long userId);
-    Task<UserInfo?> FindUserInfoByUserIdAsync(long userId);
-    Task<UserCredential?> FindUserCredentialByEmailAsync(string email);
-    Task<UserCredential?> FindUserCredentialByUserIdAsync(long userId);
-    Task<UserSubscription?> FindUserSubscriptionByUserIdAsync(long userId);
-    
-    Task<User> SaveUserAsync(User user);
+    Task<IdentityUser?> FindUserByIdAsync(string userId);
+    Task<IdentityUser?> FindUserByEmailAsync(string email);
+    Task<IdentityUser> SaveUserAsync(IdentityUser user);
+    Task<UserInfo?> FindUserInfoByUserIdAsync(string userId);
+    Task<UserInfo> SaveUserInfoAsync(UserInfo userInfo);
+    Task<UserSubscription?> FindUserSubscriptionByUserIdAsync(string userId);
+    Task<UserSubscription> SaveUserSubscriptionAsync(UserSubscription userSubscription);
 }

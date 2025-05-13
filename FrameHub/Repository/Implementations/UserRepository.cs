@@ -2,46 +2,61 @@
 using FrameHub.Extensions;
 using FrameHub.Model.Entities;
 using FrameHub.Repository.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace FrameHub.Repository.Implementations;
 
 public class UserRepository(AppDbContext context) : IUserRepository
 {
-    private readonly DbSet<User> _user = context.Set<User>();
+    private readonly DbSet<IdentityUser> _user = context.Set<IdentityUser>();
     private readonly DbSet<UserInfo> _userInfo = context.Set<UserInfo>();
-    private readonly DbSet<UserCredential> _userCredential = context.Set<UserCredential>();
     private readonly DbSet<UserSubscription> _userSubscription = context.Set<UserSubscription>();
     
-    public async Task<User?> FindUserByIdAsync(long userId)
+    public async Task<IdentityUser?> FindUserByIdAsync(string userId)
     {
-      return await _user.FindActiveByIdAsync(userId);
+      return await _user.FindAsync(userId);
+    }
+
+    public async Task<IdentityUser?> FindUserByEmailAsync(string email)
+    {
+        return await _user
+            .Where(u=> u.Email == email)
+            .FirstOrDefaultAsync();
     }
     
-    public async Task<UserCredential?> FindUserCredentialByEmailAsync(string email)
-    {
-        return await _userCredential.FirstOrDefaultAsync(e => e.Email == email && e.Status);
-    }
-
-    public async Task<UserInfo?> FindUserInfoByUserIdAsync(long userId)
-    {
-        return await _userInfo.FindActiveByIdAsync(userId);
-    }
-
-    public async Task<UserCredential?> FindUserCredentialByUserIdAsync(long userId)
-    {
-        return await _userCredential.FindActiveByIdAsync(userId);
-    }
-
-    public async Task<UserSubscription?> FindUserSubscriptionByUserIdAsync(long userId)
-    {
-        return await _userSubscription.FindActiveByIdAsync(userId);
-    }
-    
-    public async Task<User> SaveUserAsync(User user)
+    public async Task<IdentityUser> SaveUserAsync(IdentityUser user)
     { 
         await _user.AddAsync(user);
         await context.SaveChangesAsync();
         return user;
+    }
+
+    public async Task<UserInfo?> FindUserInfoByUserIdAsync(string userId)
+    {
+        return await _userInfo
+            .Where(ui => ui.UserId == userId && ui.Status)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<UserInfo> SaveUserInfoAsync(UserInfo userInfo)
+    {
+        await _userInfo.AddAsync(userInfo);
+        await context.SaveChangesAsync();
+        return userInfo;
+    }
+
+    public async Task<UserSubscription?> FindUserSubscriptionByUserIdAsync(string userId)
+    {
+        return await _userSubscription
+            .Where(us => us.UserId == userId && us.Status)
+            .FirstOrDefaultAsync();
+    }
+    
+    public async Task<UserSubscription> SaveUserSubscriptionAsync(UserSubscription userSubscription)
+    {
+        await _userSubscription.AddAsync(userSubscription);
+        await context.SaveChangesAsync();
+        return userSubscription;
     }
 }
