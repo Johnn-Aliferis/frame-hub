@@ -1,6 +1,7 @@
 using DotNetEnv;
 using FrameHub.ContextConfiguration;
 using FrameHub.Extensions;
+using FrameHub.Model.Entities;
 using FrameHub.Repository.Implementations;
 using FrameHub.Repository.Interfaces;
 using FrameHub.Service.Factories;
@@ -38,11 +39,15 @@ builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
 
-builder.Services.AddIdentityCore<IdentityUser>()
+builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
+
+
+// Security 
+builder.Services.AddDataProtection(); 
 
 // For Database Extension
 builder.Services.AddDatabaseServices();

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FrameHub.ContextConfiguration;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<IdentityUser>(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -15,7 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
         var entityTypes = Assembly.GetExecutingAssembly()
             .GetTypes()
-            .Where(t => t is { IsClass: true, IsAbstract: false, Namespace: "FrameHub.Model.Entities" });
+            .Where(t => t is { IsClass: true, IsAbstract: false, Namespace: "FrameHub.Model.Entities" } && t != typeof(ApplicationUser));
 
         // Reflection to dynamically register entities
         foreach (var entityType in entityTypes)
@@ -31,6 +31,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+            
+            foreach (var entry in ChangeTracker.Entries<ApplicationUser>())
             {
                 if (entry.State == EntityState.Modified)
                 {

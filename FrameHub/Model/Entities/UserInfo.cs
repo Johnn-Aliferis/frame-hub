@@ -11,6 +11,6 @@ public class UserInfo : BaseEntity
     public long? ProfilePictureId { get; set; }
     public required string UserId { get; set; }
 
-    public virtual required IdentityUser User { get; set; }
+    public virtual required ApplicationUser User { get; set; }
     public virtual Photo? ProfilePicture { get; set; }
 }

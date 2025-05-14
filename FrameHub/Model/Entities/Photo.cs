@@ -9,5 +9,5 @@ public class Photo : BaseEntity
     public required string CdnUrl { get; set; }
     public string? Tags { get; set; }
     public bool IsProfilePicture { get; set; }
-    public virtual required IdentityUser User { get; set; }
+    public virtual required ApplicationUser User { get; set; }
 }

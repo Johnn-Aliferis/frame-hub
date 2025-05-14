@@ -15,10 +15,8 @@ public class DefaultRegistrationStrategy(
     IUserRepository userRepository,
     ILogger<DefaultRegistrationStrategy> logger,
     ISubscriptionPlanRepository subscriptionPlanRepository, 
-    UserManager<IdentityUser> userManager) : IRegistrationStrategy
+    UserManager<ApplicationUser> userManager) : IRegistrationStrategy
 {
-    private const string LocalProvider = "local";
-
     public async Task<RegistrationResponseDto> RegisterAsync(RegistrationRequestDto registrationRequestDto)
     {
         await unitOfWork.BeginTransactionAsync();
@@ -44,13 +42,13 @@ public class DefaultRegistrationStrategy(
                 HttpStatusCode.Conflict);
         }
 
-        var user = new IdentityUser
+        var applicationUser = new ApplicationUser
         {
             UserName = registrationRequestDto.Email,
             Email = registrationRequestDto.Email,
         };
         
-        var response = await CreateUserAsync(user , registrationRequestDto.Password);
+        var response = await CreateUserAsync(applicationUser , registrationRequestDto.Password);
         
         
         var userInfo = new UserInfo
@@ -72,7 +70,7 @@ public class DefaultRegistrationStrategy(
         var userSubscription = new UserSubscription
         {
             AssignedAt = DateTime.UtcNow,
-            User = user,
+            User = applicationUser,
             UserId = response.Id,
             SubscriptionPlan = subscriptionPlan
         };
@@ -97,14 +95,14 @@ public class DefaultRegistrationStrategy(
     }
 
 
-    private async Task<IdentityUser> CreateUserAsync(IdentityUser identityUser , string password)
+    private async Task<ApplicationUser> CreateUserAsync(ApplicationUser applicationUser , string password)
     {
-        var result = await userManager.CreateAsync(identityUser, password);
+        var result = await userManager.CreateAsync(applicationUser, password);
         if (!result.Succeeded)
         {
             throw new RegistrationException(string.Join(", ", result.Errors.Select(e => e.Description)),
                 HttpStatusCode.InternalServerError);
         }
-        return identityUser;
+        return applicationUser;
     }
 }

@@ -47,6 +47,11 @@
                 [LockoutEnd] datetimeoffset NULL,
                 [LockoutEnabled] bit NOT NULL,
                 [AccessFailedCount] int NOT NULL,
+                [Discriminator] NVARCHAR(256) NOT NULL DEFAULT 'ApplicationUser',
+                [Guid]                UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+                [CreatedAt]          DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                [UpdatedAt]           DATETIME2 NULL,
+                [Status]              BIT NOT NULL DEFAULT 1,
                 CONSTRAINT [PK_AspNetUsers] PRIMARY KEY ([Id])
             );
         END
@@ -85,7 +90,7 @@
                 [ProviderKey] nvarchar(450) NOT NULL,
                 [ProviderDisplayName] nvarchar(max) NULL,
                 [UserId] nvarchar(450) NOT NULL,
-                CONSTRAINT [PK_AspNetUserLogins] PRIMARY KEY ([LoginProvider], [ProviderKey]),
+                CONSTRAINT [PK_AspNetUserLogins] PRIMARY KEY NONCLUSTERED ([LoginProvider], [ProviderKey]),
                 CONSTRAINT [FK_AspNetUserLogins_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
             );
         END
@@ -110,7 +115,7 @@
                 [LoginProvider] nvarchar(450) NOT NULL,
                 [Name] nvarchar(450) NOT NULL,
                 [Value] nvarchar(max) NULL,
-                CONSTRAINT [PK_AspNetUserTokens] PRIMARY KEY ([UserId], [LoginProvider], [Name]),
+                CONSTRAINT [PK_AspNetUserTokens] PRIMARY KEY NONCLUSTERED ([UserId], [LoginProvider], [Name]),
                 CONSTRAINT [FK_AspNetUserTokens_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
             );
         END
@@ -151,7 +156,7 @@
                     UserId           NVARCHAR(450) NOT NULL
     
             CONSTRAINT FK_UserInfo_AspNetUsers FOREIGN KEY (UserId)
-                REFERENCES [dbo].[FK_Photo_AspNetUsers](Id) ON DELETE CASCADE
+                REFERENCES [dbo].[AspNetUsers](Id) ON DELETE CASCADE
                 
             );
         END
@@ -195,16 +200,6 @@
 
             );
         END
-        
-        
--- Indexes 
-CREATE INDEX [IX_AspNetRoleClaims_RoleId] ON [AspNetRoleClaims] ([RoleId]);
-CREATE UNIQUE INDEX [RoleNameIndex] ON [AspNetRoles] ([NormalizedName]) WHERE [NormalizedName] IS NOT NULL;
-CREATE INDEX [IX_AspNetUserClaims_UserId] ON [AspNetUserClaims] ([UserId]);
-CREATE INDEX [IX_AspNetUserLogins_UserId] ON [AspNetUserLogins] ([UserId]);
-CREATE INDEX [IX_AspNetUserRoles_RoleId] ON [AspNetUserRoles] ([RoleId]);
-CREATE INDEX [EmailIndex] ON [AspNetUsers] ([NormalizedEmail]);
-CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHERE [NormalizedUserName] IS NOT NULL;
 
 -- ========================
 -- Indexes
