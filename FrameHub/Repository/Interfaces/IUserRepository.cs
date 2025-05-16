@@ -5,9 +5,9 @@ namespace FrameHub.Repository.Interfaces;
 
 public interface IUserRepository
 {
-    Task<IdentityUser?> FindUserByIdAsync(string userId);
-    Task<IdentityUser?> FindUserByEmailAsync(string email);
-    Task<IdentityUser> SaveUserAsync(IdentityUser user);
+    Task<ApplicationUser?> FindUserByIdAsync(string userId);
+    Task<ApplicationUser?> FindUserByEmailAsync(string email);
+    Task<ApplicationUser> SaveUserAsync(ApplicationUser user);
     Task<UserInfo?> FindUserInfoByUserIdAsync(string userId);
     Task<UserInfo> SaveUserInfoAsync(UserInfo userInfo);
     Task<UserSubscription?> FindUserSubscriptionByUserIdAsync(string userId);

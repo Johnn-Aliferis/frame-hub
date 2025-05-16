@@ -9,23 +9,23 @@ namespace FrameHub.Repository.Implementations;
 
 public class UserRepository(AppDbContext context) : IUserRepository
 {
-    private readonly DbSet<IdentityUser> _user = context.Set<IdentityUser>();
+    private readonly DbSet<ApplicationUser> _user = context.Set<ApplicationUser>();
     private readonly DbSet<UserInfo> _userInfo = context.Set<UserInfo>();
     private readonly DbSet<UserSubscription> _userSubscription = context.Set<UserSubscription>();
     
-    public async Task<IdentityUser?> FindUserByIdAsync(string userId)
+    public async Task<ApplicationUser?> FindUserByIdAsync(string userId)
     {
       return await _user.FindAsync(userId);
     }
 
-    public async Task<IdentityUser?> FindUserByEmailAsync(string email)
+    public async Task<ApplicationUser?> FindUserByEmailAsync(string email)
     {
         return await _user
             .Where(u=> u.Email == email)
             .FirstOrDefaultAsync();
     }
     
-    public async Task<IdentityUser> SaveUserAsync(IdentityUser user)
+    public async Task<ApplicationUser> SaveUserAsync(ApplicationUser user)
     { 
         await _user.AddAsync(user);
         await context.SaveChangesAsync();
