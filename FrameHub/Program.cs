@@ -8,6 +8,7 @@ using FrameHub.Service.Factories;
 using FrameHub.Service.Implementations;
 using FrameHub.Service.Interfaces;
 using FrameHub.Service.Strategies;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,11 +40,31 @@ builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
 
+
+builder.Services.AddScoped<ISsoProviderStrategyFactory, SsoProviderStrategyFactory>();
+builder.Services.AddScoped<GoogleSsoProviderStrategy>();
+
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
+// Later add in extensions
+// builder.Services.AddAuthentication()
+//     .AddGoogle(googleOptions =>
+//     {
+//         googleOptions.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")!;
+//         googleOptions.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_SECRET")!;
+//     });
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie("External")
+    .AddGoogle("google", options =>
+    {
+        options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")!;
+        options.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_SECRET")!;
+        options.CallbackPath = "/google-sso-callback";
+    });
 
 
 // Security 

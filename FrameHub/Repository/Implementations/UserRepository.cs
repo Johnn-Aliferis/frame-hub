@@ -21,7 +21,7 @@ public class UserRepository(AppDbContext context) : IUserRepository
     public async Task<ApplicationUser?> FindUserByEmailAsync(string email)
     {
         return await _user
-            .Where(u=> u.Email == email)
+            .Where(u=> u.Email == email && u.Status)
             .FirstOrDefaultAsync();
     }
     

@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using AutoMapper;
 using FrameHub.Enum;
 using FrameHub.Exceptions;
 using FrameHub.Model.Dto.Registration;
