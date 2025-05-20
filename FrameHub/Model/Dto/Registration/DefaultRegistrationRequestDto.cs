@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using FrameHub.Model.Dto.Interface;
 
 namespace FrameHub.Model.Dto.Registration;
 
-public class RegistrationRequestDto
+public class DefaultRegistrationRequestDto : IRegistrationInfo
 {
     [Required]
-    [AllowedValues("default", "google")]
+    [AllowedValues("default", "sso")]
     public required string RegistrationMethod { get; set; }
     
     [Required]

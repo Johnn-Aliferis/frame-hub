@@ -29,12 +29,6 @@ if (builder.Environment.IsDevelopment())
 // Later to be added in extensions :
 builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<IRegistrationService, RegistrationService>();
-builder.Services.AddTransient<ILoginStrategyFactory, LoginStrategyFactory>();
-builder.Services.AddTransient<IRegistrationStrategyFactory, RegistrationStrategyFactory>();
-builder.Services.AddTransient<DefaultLoginStrategy>();
-builder.Services.AddTransient<DefaultRegistrationStrategy>();
-builder.Services.AddTransient<GoogleLoginStrategy>();
-builder.Services.AddTransient<GoogleRegistrationStrategy>();
 
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
@@ -43,9 +37,13 @@ builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepos
 
 builder.Services.AddScoped<ISsoProviderStrategyFactory, SsoProviderStrategyFactory>();
 builder.Services.AddScoped<GoogleSsoProviderStrategy>();
+//
+// builder.Services.AddIdentityCore<ApplicationUser>()
+//     .AddRoles<IdentityRole>()
+//     .AddEntityFrameworkStores<AppDbContext>()
+//     .AddDefaultTokenProviders();
 
-builder.Services.AddIdentityCore<ApplicationUser>()
-    .AddRoles<IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => { })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 

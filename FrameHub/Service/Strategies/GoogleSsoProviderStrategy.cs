@@ -10,6 +10,8 @@ namespace FrameHub.Service.Strategies;
 
 public class GoogleSsoProviderStrategy(SignInManager<ApplicationUser> signInManager) : ISsoProviderStrategy
 {
+    private const string SsoProvider = "sso";
+    
     public async Task<UserInfoSsoResponseDto> GetUserInfoAsync()
     {
         var info = await signInManager.GetExternalLoginInfoAsync();
@@ -32,7 +34,8 @@ public class GoogleSsoProviderStrategy(SignInManager<ApplicationUser> signInMana
             Email = email,
             FirstName = firstName,
             LastName = lastName,
-            Provider = "google"
+            Provider = SsoProvider,
+            ExternalLoginInfo = info
         };
     }
 }

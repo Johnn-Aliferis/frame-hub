@@ -10,9 +10,9 @@ public class RegistrationController(IRegistrationService registrationService) : 
 {
     [HttpPost]
     [Route("register")]
-    public async Task<ActionResult> Register([FromBody] RegistrationRequestDto registrationRequestDto)
+    public async Task<ActionResult> Register([FromBody] DefaultRegistrationRequestDto defaultRegistrationRequestDto)
     {
-        var response =  await registrationService.RegisterAsync(registrationRequestDto);
+        var response =  await registrationService.RegisterDefaultAsync(defaultRegistrationRequestDto);
         return Ok(response);
     }
 }
