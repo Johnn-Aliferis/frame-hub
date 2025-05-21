@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using FrameHub.Enum;
 using FrameHub.Exceptions;
 using FrameHub.Model.Dto.Login;
 using FrameHub.Model.Dto.Registration;
@@ -26,21 +27,40 @@ public class SsoService(
             throw new SsoException("Provider is required", HttpStatusCode.BadRequest);
         }
 
-        var providerRoute = provider.ToLowerInvariant();
-        var redirectUrl = url.RouteUrl(providerRoute, new { provider });
+        if (!System.Enum.GetNames(typeof(SsoProvider))
+                .Any(name => name.Equals(provider, StringComparison.OrdinalIgnoreCase)))
+
+        {
+            throw new SsoException($"Unsupported provider", HttpStatusCode.BadRequest);
+        }
+
+        var redirectUrl = url.Action(
+            action: "Register",
+            controller: "Sso",
+            values: new { provider = provider },
+            protocol: "https"
+        );
 
         if (string.IsNullOrEmpty(redirectUrl))
         {
             throw new SsoException("Invalid or unsupported provider", HttpStatusCode.BadRequest);
         }
 
-        var props = new AuthenticationProperties { RedirectUri = redirectUrl };
+        Console.WriteLine("Redirect URI: " + redirectUrl);
 
-        return new SsoChallengeResultDto { Properties = props, Provider = providerRoute };
+        var props = new AuthenticationProperties
+        {
+            RedirectUri = redirectUrl,
+            AllowRefresh = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(5)
+        };
+
+
+        return new SsoChallengeResultDto { Properties = props, Provider = provider };
     }
 
 
-    public async Task<AuthResponseDto> HandleCallbackAsync(string provider, string code)
+    public async Task<LoginResponseDto> HandleCallbackAsync(string provider, string code)
     {
         if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(provider))
         {
@@ -51,24 +71,25 @@ public class SsoService(
         var strategy = ssoProviderStrategyFactory.GetStrategy(provider);
         var userInfo = await strategy.GetUserInfoAsync();
 
-        
+
         var userByLogin = await userManager.FindByLoginAsync(
             userInfo.ExternalLoginInfo.LoginProvider,
             userInfo.ExternalLoginInfo.ProviderKey
         );
-        
+
         if (userByLogin != null)
         {
             return await HandleSsoLogin(userInfo);
         }
-        
+
         var userByEmail = await userRepository.FindUserByEmailAsync(userInfo.Email);
         if (userByEmail != null)
         {
             // Same email but from different provider detected.
-            throw new SsoException("This email is already registered with a different provider.", HttpStatusCode.Conflict);
+            throw new SsoException("This email is already registered with a different provider.",
+                HttpStatusCode.Conflict);
         }
-        
+
         await HandleSsoRegistration(userInfo);
 
         return await HandleSsoLogin(userInfo);
@@ -81,25 +102,24 @@ public class SsoService(
             Email = userInfo.Email,
             DisplayName = userInfo.Email
         };
-        
+
         await registrationService.RegisterSsoAsync(ssoRegistrationRequest);
     }
 
-    private async Task<AuthResponseDto> HandleSsoLogin(UserInfoSsoResponseDto userInfo)
+    private async Task<LoginResponseDto> HandleSsoLogin(UserInfoSsoResponseDto userInfo)
     {
-        Console.WriteLine("Logged in!");
-        
-        var logInRequest = new LoginRequestDto
+        var user = await userManager.FindByLoginAsync(
+            userInfo.ExternalLoginInfo.LoginProvider,
+            userInfo.ExternalLoginInfo.ProviderKey);
+
+        if (user == null)
         {
-            LoginMethod = userInfo.Provider,
-            Email = userInfo.Email,
-        };
-        var loggedUser = await loginService.LoginAsync(logInRequest);
-        return new AuthResponseDto
-        {
-            AccessToken = loggedUser.AccessToken,
-            RefreshToken = loggedUser.RefreshToken,
-        };
-        
+            throw new SsoException("User not found for external login", HttpStatusCode.Unauthorized);
+        }
+
+        return loginService.SsoLogin(user);
+
+
+        // for now to simply test login works , next up set up JWT etc.
     }
 }

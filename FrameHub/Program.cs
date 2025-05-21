@@ -1,3 +1,4 @@
+using System.Text;
 using DotNetEnv;
 using FrameHub.ContextConfiguration;
 using FrameHub.Extensions;
@@ -9,7 +10,10 @@ using FrameHub.Service.Implementations;
 using FrameHub.Service.Interfaces;
 using FrameHub.Service.Strategies;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,33 +41,36 @@ builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepos
 
 builder.Services.AddScoped<ISsoProviderStrategyFactory, SsoProviderStrategyFactory>();
 builder.Services.AddScoped<GoogleSsoProviderStrategy>();
-//
-// builder.Services.AddIdentityCore<ApplicationUser>()
-//     .AddRoles<IdentityRole>()
-//     .AddEntityFrameworkStores<AppDbContext>()
-//     .AddDefaultTokenProviders();
+builder.Services.AddScoped<ISsoService, SsoService>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => { })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// Later add in extensions
-// builder.Services.AddAuthentication()
-//     .AddGoogle(googleOptions =>
-//     {
-//         googleOptions.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")!;
-//         googleOptions.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_SECRET")!;
-//     });
 
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie("External")
-    .AddGoogle("google", options =>
+// Authentication setup
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // Primary auth
+        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme; // For SSO
+
+    })
+    .AddCookie(options =>
+    {
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    })
+    .AddGoogle("google",options =>
     {
         options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")!;
         options.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_SECRET")!;
-        options.CallbackPath = "/google-sso-callback";
+        // options.CallbackPath = "/signin-google";
+    
+        // Isolate Google's cookies
+        options.CorrelationCookie.SameSite = SameSiteMode.None;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.CorrelationCookie.Path = "/";
     });
-
 
 // Security 
 builder.Services.AddDataProtection(); 
@@ -91,6 +98,13 @@ app.UseCustomMiddlewares();
 
 app.UseHttpsRedirection();
 
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.None,
+    Secure = CookieSecurePolicy.Always
+});
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

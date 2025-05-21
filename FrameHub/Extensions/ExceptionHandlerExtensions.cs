@@ -8,6 +8,7 @@ public static class ExceptionHandlerExtensions
     {
         services.AddSingleton<IExceptionHandler, GeneralExceptionHandler>();
         services.AddSingleton<IExceptionHandler, RegistrationExceptionHandler>();
+        services.AddSingleton<IExceptionHandler, LoginExceptionHandler>();
         
         services.AddSingleton<ExceptionHandlingStrategy>();
     }
