@@ -1,14 +1,11 @@
-using System.Text;
 using DotNetEnv;
 using FrameHub.ContextConfiguration;
 using FrameHub.Extensions;
 using FrameHub.Model.Entities;
 using FrameHub.Repository.Implementations;
 using FrameHub.Repository.Interfaces;
-using FrameHub.Service.Factories;
 using FrameHub.Service.Implementations;
 using FrameHub.Service.Interfaces;
-using FrameHub.Service.Strategies;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -38,9 +35,6 @@ builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
 
-
-builder.Services.AddScoped<ISsoProviderStrategyFactory, SsoProviderStrategyFactory>();
-builder.Services.AddScoped<GoogleSsoProviderStrategy>();
 builder.Services.AddScoped<ISsoService, SsoService>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => { })
@@ -64,7 +58,6 @@ builder.Services.AddAuthentication(options =>
     {
         options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")!;
         options.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_SECRET")!;
-        // options.CallbackPath = "/signin-google";
     
         // Isolate Google's cookies
         options.CorrelationCookie.SameSite = SameSiteMode.None;

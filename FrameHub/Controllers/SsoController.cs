@@ -1,6 +1,5 @@
 ﻿using FrameHub.Service.Interfaces;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +22,8 @@ public class SsoController(ISsoService ssoService) : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult> Register([FromRoute] string provider)
     {
-        // todo : use info and pass it down to get the values needed. Middleware already handles the code returned from google , no need to do it myself.
         var info = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
-        var result = await ssoService.HandleCallbackAsync(provider.ToLowerInvariant(), "code");
+        var result = await ssoService.HandleCallbackAsync(info);
         return Ok(result);
     }
 }

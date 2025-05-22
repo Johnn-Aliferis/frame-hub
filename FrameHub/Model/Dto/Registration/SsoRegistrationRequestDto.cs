@@ -14,4 +14,10 @@ public class SsoRegistrationRequestDto : IRegistrationInfo
 
     [Phone]
     public string? PhoneNumber { get; set; }
+    
+    [Required]
+    public required string LoginProvider { get; set; }
+    
+    [Required]
+    public required string ProviderKey { get; set; }
 }

@@ -90,6 +90,18 @@ public class RegistrationService(
         {
             throw new RegistrationException("User creation failed", HttpStatusCode.BadRequest);
         }
+        
+        // Linking the external login
+        var loginInfo = new UserLoginInfo(
+            ssoRegistrationRequestDto.LoginProvider,
+            ssoRegistrationRequestDto.ProviderKey,
+            ssoRegistrationRequestDto.LoginProvider);
+
+        var loginResult = await userManager.AddLoginAsync(applicationUser, loginInfo);
+        if (!loginResult.Succeeded)
+        {
+            throw new RegistrationException("Linking external login failed", HttpStatusCode.BadRequest);
+        }
 
         await HandleUserInfoSave(applicationUser, ssoRegistrationRequestDto);
 
