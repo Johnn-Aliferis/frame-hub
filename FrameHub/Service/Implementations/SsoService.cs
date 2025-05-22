@@ -60,11 +60,7 @@ public class SsoService(
 
     public async Task<LoginResponseDto> HandleCallbackAsync(AuthenticateResult result)
     {
-        // Get dynamically the strategy based on provider(Google , Microsoft) -- may have different claim set up
-        // var strategy = ssoProviderStrategyFactory.GetStrategy(provider);
-        // var userInfo = await strategy.GetUserInfoAsync();
         var userInfo = ExtractDataFromResult(result);
-
 
         var userByLogin = await userManager.FindByLoginAsync(userInfo.LoginProvider, userInfo.ProviderKey);
 

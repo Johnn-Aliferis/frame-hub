@@ -1,7 +1,11 @@
+using System.Net;
+using System.Text;
 using DotNetEnv;
 using FrameHub.ContextConfiguration;
+using FrameHub.Exceptions;
 using FrameHub.Extensions;
 using FrameHub.Model.Entities;
+using FrameHub.Options;
 using FrameHub.Repository.Implementations;
 using FrameHub.Repository.Interfaces;
 using FrameHub.Service.Implementations;
@@ -26,9 +30,9 @@ if (builder.Environment.IsDevelopment())
     Env.Load();
 }
 
-
 // Later to be added in extensions :
 builder.Services.AddTransient<ILoginService, LoginService>();
+builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
@@ -42,11 +46,28 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => { })
     .AddDefaultTokenProviders();
 
 
+builder.Services.Configure<JwtSettingsOptions>(builder.Configuration.GetSection("JwtSettings"));
+
+var jwtSettings = builder.Configuration
+    .GetSection("JwtSettings")
+    .Get<JwtSettingsOptions>();
+
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+
+if (string.IsNullOrEmpty(jwtSecret))
+{
+    throw new GeneralException("JWT_SECRET environment variable is missing.", HttpStatusCode.InternalServerError);
+}
+if (jwtSettings is null)
+{
+    throw new GeneralException("jwtSettings config is missing.", HttpStatusCode.InternalServerError);
+}
+
 // Authentication setup
 builder.Services.AddAuthentication(options =>
     {
-        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // Primary auth
-        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme; // For SSO
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
     })
     .AddCookie(options =>
@@ -54,6 +75,22 @@ builder.Services.AddAuthentication(options =>
         options.Cookie.SameSite = SameSiteMode.None;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     })
+    .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwtSettings.Issuer,
+
+                ValidateAudience = true,
+                ValidAudience = jwtSettings.Audience,
+
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+            };
+        })
     .AddGoogle("google",options =>
     {
         options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")!;
@@ -63,6 +100,7 @@ builder.Services.AddAuthentication(options =>
         options.CorrelationCookie.SameSite = SameSiteMode.None;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
         options.CorrelationCookie.Path = "/";
+        // options.SignInScheme = "External";
     });
 
 // Security 
