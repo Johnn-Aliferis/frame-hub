@@ -1,0 +1,2 @@
+﻿We deliberately used RabbitMQ only where internal async flows and fault-tolerance were required (S3 cleanup). Stripe already guarantees event delivery and retry for subscriptions, so we avoided unnecessary infrastructure. 
+This approach keeps the project clean while showcasing message-driven design where it provides value.

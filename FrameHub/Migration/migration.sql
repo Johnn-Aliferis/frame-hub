@@ -172,6 +172,8 @@
                 Status           BIT NOT NULL DEFAULT 1,
                 Code             NVARCHAR(20) NOT NULL,
                 Name             NVARCHAR(50) NOT NULL,
+                StripeProductId  NVARCHAR(100) NULL,
+                StripePriceId    NVARCHAR(100) NULL,
                 Description      NVARCHAR(200) NULL,
                 MaxUploads       INT NOT NULL,
                 MonthlyPrice     DECIMAL(10,2) NULL
@@ -182,15 +184,18 @@
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'UserSubscription' AND type = 'U')
         BEGIN
             CREATE TABLE [dbo].[UserSubscription] (
-                Id                  BIGINT PRIMARY KEY IDENTITY(1,1),
-                Guid                UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
-                CreatedAt           DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-                UpdatedAt           DATETIME2 NULL,
-                Status              BIT NOT NULL DEFAULT 1,
-                UserId              NVARCHAR(450) NOT NULL,
-                SubscriptionPlanId  BIGINT NOT NULL,
-                AssignedAt          DATETIME2 NOT NULL,
-                ExpiresAt           DATETIME2 NULL
+                Id                   BIGINT PRIMARY KEY IDENTITY(1,1),
+                Guid                 UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+                CreatedAt            DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                UpdatedAt            DATETIME2 NULL,
+                Status               BIT NOT NULL DEFAULT 1,
+                UserId               NVARCHAR(450) NOT NULL,
+                SubscriptionPlanId   BIGINT NOT NULL,
+                StripeCustomerId     NVARCHAR(100) NULL,
+                StripeSubscriptionId NVARCHAR(100) NULL,
+                PaymentStatus        NVARCHAR(50) NULL,
+                AssignedAt           DATETIME2 NOT NULL,
+                ExpiresAt            DATETIME2 NULL
     
             CONSTRAINT FK_UserSubscription_AspNetUsers FOREIGN KEY (UserId)
                 REFERENCES [dbo].[AspNetUsers](Id) ON DELETE CASCADE,
@@ -198,6 +203,42 @@
             CONSTRAINT FK_UserSubscription_Plans FOREIGN KEY (SubscriptionPlanId)
                 REFERENCES SubscriptionPlan(Id) ON DELETE CASCADE
 
+            );
+        END
+        
+          -- UserTransactionHistory   
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'UserTransactionHistory' AND type = 'U')
+            BEGIN
+                CREATE TABLE [dbo].[UserTransactionHistory] (
+                    Id                     BIGINT PRIMARY KEY IDENTITY(1,1),
+                    Guid                   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+                    CreatedAt              DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                    UpdatedAt              DATETIME2 NULL,
+                    Status                 BIT NOT NULL DEFAULT 1,
+                    UserId                 NVARCHAR(450) NOT NULL,
+                    Amount                 DECIMAL(10,2) NOT NULL,
+                    Currency               NVARCHAR(10) NOT NULL,
+                    StripePaymentIntentId  NVARCHAR(255) NOT NULL,
+                    StripeInvoiceId        NVARCHAR(255) NULL,
+                    Description            NVARCHAR(255) NULL,
+                    ReceiptUrl             NVARCHAR(2048) NULL,
+                    MetadataJson           NVARCHAR(MAX) NULL,
+                
+                    CONSTRAINT FK_UserTransactionHistory_AspNetUsers FOREIGN KEY (UserId)
+                    REFERENCES [dbo].[AspNetUsers](Id) ON DELETE CASCADE
+                );
+            END
+        
+        -- StripeWebhookEvent  
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'StripeWebhookEvent' AND type = 'U')
+        BEGIN
+            CREATE TABLE [dbo].[StripeWebhookEvent] (
+                Id              BIGINT PRIMARY KEY IDENTITY(1,1),
+                StripeEventId   NVARCHAR(100) NOT NULL,
+                EventType       NVARCHAR(100) NOT NULL,
+                ReceivedAt      DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                RawPayload      NVARCHAR(MAX) NOT NULL,
+                Processed       BIT NOT NULL DEFAULT 0
             );
         END
 
@@ -217,12 +258,14 @@ CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHER
 CREATE UNIQUE INDEX IX_UserInfo_UserId ON [UserInfo] (UserId);
 CREATE UNIQUE INDEX IX_UserSubscription_UserId ON [UserSubscription] (UserId);
 CREATE UNIQUE INDEX IX_SubscriptionPlan_Code ON [SubscriptionPlan] (Code);
+CREATE UNIQUE INDEX IX_StripeWebhookEvent_StripeEventId ON [StripeWebhookEvent] (StripeEventId);
+CREATE INDEX  IX_UserTransactionHistory_UserId ON [UserTransactionHistory] (UserId);
 
 -- ========================
 -- Seed Data
 -- ========================
-INSERT INTO [dbo].[SubscriptionPlan] (Code, Name, Description, MaxUploads, MonthlyPrice)
+INSERT INTO [dbo].[SubscriptionPlan] (Code, Name, StripeProductId, StripePriceId,  Description, MaxUploads, MonthlyPrice)
 VALUES
-    ('BASIC', 'Basic Plan', 'Free plan with limited access', 0, 0.00),
-    ('PRO', 'Pro Plan', 'Premium features', 100, 9.99),
-    ('ENTERPRISE', 'Enterprise Plan', 'Unlimited access', 1000, 29.99);
+    ('BASIC', 'Basic Plan', NULL, NULL, 'Free plan with limited access', 0, 0.00),
+    ('PRO', 'Pro Plan', 'prod_SMeKyTOkn9HmxO', 'price_1RRv2ECQhowdgEANcbQ3xr2s', 'Premium features', 5, 9.99),
+    ('ENTERPRISE', 'Enterprise Plan', 'prod_SMeMuctQXhsOls', 'price_1RRv43CQhowdgEANT13Lza3v', 'Unlimited access', 20, 29.99);
