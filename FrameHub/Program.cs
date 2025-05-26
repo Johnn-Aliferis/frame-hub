@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,6 +103,11 @@ builder.Services.AddAuthentication(options =>
         options.CorrelationCookie.Path = "/";
         // options.SignInScheme = "External";
     });
+
+
+
+// Stripe Payments setup 
+StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
 
 // Security 
 builder.Services.AddDataProtection(); 
