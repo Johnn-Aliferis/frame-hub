@@ -24,9 +24,18 @@ public class SubscriptionPlanConfiguration : IEntityTypeConfiguration<Subscripti
             .IsRequired()
             .HasMaxLength(50);
         
+        builder.Property(sp => sp.ProductId)
+            .IsRequired()
+            .HasMaxLength(100);
+        
+        builder.Property(sp => sp.PriceId)
+            .IsRequired()
+            .HasMaxLength(100);
+        
         builder.Property(sp => sp.Description)
             .IsRequired(false)
             .HasMaxLength(200);
+        
 
         builder.Property(sp => sp.MaxUploads)
             .IsRequired();

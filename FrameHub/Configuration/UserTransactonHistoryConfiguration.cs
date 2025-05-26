@@ -24,11 +24,11 @@ public class UserTransactonHistoryConfiguration  : IEntityTypeConfiguration<User
             .HasMaxLength(10)
             .IsRequired();
         
-        builder.Property(uth => uth.StripePaymentIntentId)
+        builder.Property(uth => uth.PaymentIntentId)
             .HasMaxLength(255)
             .IsRequired();
         
-        builder.Property(uth => uth.StripeInvoiceId)
+        builder.Property(uth => uth.InvoiceId)
             .HasMaxLength(255)
             .IsRequired(false);
 

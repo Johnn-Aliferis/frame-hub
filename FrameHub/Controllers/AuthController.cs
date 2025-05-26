@@ -29,17 +29,20 @@ public class AuthController(ILoginService loginService, IRegistrationService reg
         var response = await registrationService.RegisterDefaultAsync(defaultRegistrationRequestDto);
         return Ok(response);
     }
-
-    [HttpGet("test", Name = "Test")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public ActionResult Test()
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var email = User.FindFirst(ClaimTypes.Email)?.Value;
-
-        if (userId is null || email is null)
-            return Unauthorized("Invalid token");
-
-        return Ok("test");
-    }
+    
+    
+    // todo : Remove once we secure other api's. 
+// [HttpGet("test", Name = "Test")]
+    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    // public ActionResult Test()
+    // {
+    //     var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //     var email = User.FindFirst(ClaimTypes.Email)?.Value;
+    //
+    //     if (userId is null || email is null)
+    //         return Unauthorized("Invalid token");
+    //
+    //     return Ok("test");
+    // }
+    
 }
