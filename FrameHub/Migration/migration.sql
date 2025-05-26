@@ -49,7 +49,7 @@
                 [AccessFailedCount] int NOT NULL,
                 [Discriminator] NVARCHAR(256) NOT NULL DEFAULT 'ApplicationUser',
                 [Guid]                UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
-                [CreatedAt]          DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                [CreatedAt]           DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
                 [UpdatedAt]           DATETIME2 NULL,
                 [Status]              BIT NOT NULL DEFAULT 1,
                 CONSTRAINT [PK_AspNetUsers] PRIMARY KEY ([Id])
@@ -229,12 +229,12 @@
                 );
             END
         
-        -- StripeWebhookEvent  
-        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'StripeWebhookEvent' AND type = 'U')
+        -- WebhookEvent  
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'WebhookEvent' AND type = 'U')
         BEGIN
-            CREATE TABLE [dbo].[StripeWebhookEvent] (
+            CREATE TABLE [dbo].[WebhookEvent] (
                 Id              BIGINT PRIMARY KEY IDENTITY(1,1),
-                StripeEventId   NVARCHAR(100) NOT NULL,
+                EventId   NVARCHAR(100) NOT NULL,
                 EventType       NVARCHAR(100) NOT NULL,
                 ReceivedAt      DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
                 RawPayload      NVARCHAR(MAX) NOT NULL,
@@ -258,7 +258,7 @@ CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHER
 CREATE UNIQUE INDEX IX_UserInfo_UserId ON [UserInfo] (UserId);
 CREATE UNIQUE INDEX IX_UserSubscription_UserId ON [UserSubscription] (UserId);
 CREATE UNIQUE INDEX IX_SubscriptionPlan_Code ON [SubscriptionPlan] (Code);
-CREATE UNIQUE INDEX IX_StripeWebhookEvent_StripeEventId ON [StripeWebhookEvent] (StripeEventId);
+CREATE UNIQUE INDEX IX_WebhookEvent_EventId ON [WebhookEvent] (EventId);
 CREATE INDEX  IX_UserTransactionHistory_UserId ON [UserTransactionHistory] (UserId);
 
 -- ========================

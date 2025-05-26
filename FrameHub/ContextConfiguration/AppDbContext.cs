@@ -8,14 +8,14 @@ namespace FrameHub.ContextConfiguration;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
-    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         var entityTypes = Assembly.GetExecutingAssembly()
             .GetTypes()
-            .Where(t => t is { IsClass: true, IsAbstract: false, Namespace: "FrameHub.Model.Entities" } && t != typeof(ApplicationUser));
+            .Where(t => t is { IsClass: true, IsAbstract: false, Namespace: "FrameHub.Model.Entities" } &&
+                        t != typeof(ApplicationUser));
 
         // Reflection to dynamically register entities
         foreach (var entityType in entityTypes)
@@ -26,26 +26,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         // Apply configurations via IEntityTypeConfiguration
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
-    
-        // For each entity modified , update updated_at column to date time now.utc
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+
+    // For each entity modified , update updated_at column to date time now.utc
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
-            foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            if (entry.State == EntityState.Modified)
             {
-                if (entry.State == EntityState.Modified)
-                {
-                    entry.Entity.UpdatedAt = DateTime.UtcNow;
-                }
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
             }
-            
-            foreach (var entry in ChangeTracker.Entries<ApplicationUser>())
-            {
-                if (entry.State == EntityState.Modified)
-                {
-                    entry.Entity.UpdatedAt = DateTime.UtcNow;
-                }
-            }
-    
-            return await base.SaveChangesAsync(cancellationToken);
         }
+        
+        // Note: ConcurrencyStamp updates by Identity cause Modified state,
+        // so UpdatedAt will be set even on first registration via SSO.
+        // This is acceptable for this demo — UpdatedAt reflects any DB write.
+
+        foreach (var entry in ChangeTracker.Entries<ApplicationUser>())
+        {
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
 }
