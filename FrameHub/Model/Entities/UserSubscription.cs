@@ -13,6 +13,6 @@ public class UserSubscription : BaseEntity
     public DateTime AssignedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
     
-    public virtual required ApplicationUser User { get; set; }
-    public virtual required SubscriptionPlan SubscriptionPlan { get; set; }
+    public virtual ApplicationUser? User { get; set; }
+    public virtual SubscriptionPlan? SubscriptionPlan { get; set; }
 }

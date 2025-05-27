@@ -35,6 +35,8 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IRegistrationService, RegistrationService>();
+builder.Services.AddTransient<IPaymentSubscriptionService, PaymentSubscriptionService>();
+builder.Services.AddTransient<IStripeService, StripeService>();
 
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();

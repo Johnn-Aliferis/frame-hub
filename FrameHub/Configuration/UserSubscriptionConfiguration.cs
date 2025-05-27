@@ -20,15 +20,15 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
             .IsRequired();
         
         builder.Property(us => us.CustomerId)
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(100);
         
         builder.Property(us => us.SubscriptionId)
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(100);
         
         builder.Property(us => us.PaymentStatus)
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(50);
 
         builder.Property(us => us.AssignedAt)
@@ -36,7 +36,7 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
             .HasColumnType("datetime2");
         
         builder.Property(us => us.ExpiresAt)
-            .IsRequired()
+            .IsRequired(false)
             .HasColumnType("datetime2");
         
         // Enforce uniqueness

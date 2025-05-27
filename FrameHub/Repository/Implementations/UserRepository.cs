@@ -1,13 +1,14 @@
-﻿using FrameHub.ContextConfiguration;
+﻿using System.Net;
+using FrameHub.ContextConfiguration;
+using FrameHub.Exceptions;
 using FrameHub.Extensions;
 using FrameHub.Model.Entities;
 using FrameHub.Repository.Interfaces;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace FrameHub.Repository.Implementations;
 
-public class UserRepository(AppDbContext context) : IUserRepository
+public class UserRepository(AppDbContext context, ILogger<UserRepository> logger) : IUserRepository
 {
     private readonly DbSet<ApplicationUser> _user = context.Set<ApplicationUser>();
     private readonly DbSet<UserInfo> _userInfo = context.Set<UserInfo>();
@@ -55,8 +56,25 @@ public class UserRepository(AppDbContext context) : IUserRepository
     
     public async Task<UserSubscription> SaveUserSubscriptionAsync(UserSubscription userSubscription)
     {
-        await _userSubscription.AddAsync(userSubscription);
-        await context.SaveChangesAsync();
-        return userSubscription;
+        try
+        {
+            var existingSubscription = await _userSubscription.FindActiveByIdAsync(userSubscription.Id);
+            
+            if (existingSubscription != null)
+            {
+                context.Entry(existingSubscription).CurrentValues.SetValues(userSubscription);
+            }
+            else
+            {
+                await _userSubscription.AddAsync(userSubscription);
+            }
+            await context.SaveChangesAsync();
+            return userSubscription;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("An error occurred with message : {}", ex.ToString());
+            throw new GeneralException("An unexpected error occurred during subscription save. ", HttpStatusCode.InternalServerError);
+        }
     }
 }
