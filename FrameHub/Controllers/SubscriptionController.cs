@@ -27,4 +27,8 @@ public class SubscriptionController(IPaymentSubscriptionService paymentSubscript
         
         return Ok(userSubscription);
     }
+    
+    
+    // Todo : Move with next REST api calls --> One for PUT/ PATCH -> Upgrade or Downgrade plan.
+    // Todo : Maybe DELETE for user deleting plan --> Downgrade to Basic Plan.
 }

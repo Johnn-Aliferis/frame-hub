@@ -4,6 +4,7 @@ using DotNetEnv;
 using FrameHub.ContextConfiguration;
 using FrameHub.Exceptions;
 using FrameHub.Extensions;
+using FrameHub.Infrastructure.Messaging.RabbitMQ;
 using FrameHub.Model.Entities;
 using FrameHub.Options;
 using FrameHub.Repository.Implementations;
@@ -110,6 +111,10 @@ builder.Services.AddAuthentication(options =>
 
 // Stripe Payments setup 
 StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+
+// Broker 
+builder.Services.AddSingleton<IRabbitMqConnectionProvider, RabbitMqConnectionProvider>();
+builder.Services.AddHostedService<StripeWebhookConsumer>();
 
 // Security 
 builder.Services.AddDataProtection(); 
