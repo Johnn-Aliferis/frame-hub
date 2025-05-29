@@ -8,7 +8,7 @@ public class WebhookEventConfiguration : IEntityTypeConfiguration<WebhookEvent>
 {
     public void Configure(EntityTypeBuilder<WebhookEvent> builder)
     {
-        builder.ToTable("StripeWebhookEvent");
+        builder.ToTable("WebhookEvent");
         
         builder.HasKey(e => e.Id);
         
@@ -19,6 +19,10 @@ public class WebhookEventConfiguration : IEntityTypeConfiguration<WebhookEvent>
         builder.Property(e => e.EventType)
             .HasMaxLength(100)
             .IsRequired();
+        
+        builder.Property(e => e.CustomerEmail)
+            .HasMaxLength(254)
+            .IsRequired(false);
 
         builder.Property(e => e.ReceivedAt)
             .HasDefaultValueSql("GETUTCDATE()")
@@ -26,10 +30,6 @@ public class WebhookEventConfiguration : IEntityTypeConfiguration<WebhookEvent>
         
         builder.Property(e => e.RawPayload)
             .HasColumnType("nvarchar(max)")
-            .IsRequired();
-
-        builder.Property(e => e.Processed)
-            .HasDefaultValue(true)
             .IsRequired();
     }
 }

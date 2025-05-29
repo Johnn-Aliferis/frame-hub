@@ -11,5 +11,7 @@ public interface IUserRepository
     Task<UserInfo?> FindUserInfoByUserIdAsync(string userId);
     Task<UserInfo> SaveUserInfoAsync(UserInfo userInfo);
     Task<UserSubscription?> FindUserSubscriptionByUserIdAsync(string userId);
+    Task<UserSubscription?> FindUserSubscriptionByUserEmailAsync(string email);
     Task<UserSubscription> SaveUserSubscriptionAsync(UserSubscription userSubscription);
+    Task SaveUserTransactionHistoryAsync(UserTransactionHistory userTransactionHistory);
 }

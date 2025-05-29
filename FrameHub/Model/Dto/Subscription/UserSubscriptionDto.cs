@@ -7,7 +7,6 @@ public class UserSubscriptionDto
     
     public string? CustomerId { get; set; }
     public string? SubscriptionId { get; set; }
-    public string? PaymentStatus { get; set; }
     public DateTime AssignedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
 

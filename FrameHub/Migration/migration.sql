@@ -193,7 +193,6 @@
                 SubscriptionPlanId   BIGINT NOT NULL,
                 CustomerId           NVARCHAR(100) NULL,
                 SubscriptionId       NVARCHAR(100) NULL,
-                PaymentStatus        NVARCHAR(50) NULL,
                 AssignedAt           DATETIME2 NOT NULL,
                 ExpiresAt            DATETIME2 NULL
     
@@ -218,7 +217,6 @@
                     UserId                 NVARCHAR(450) NOT NULL,
                     Amount                 DECIMAL(10,2) NOT NULL,
                     Currency               NVARCHAR(10) NOT NULL,
-                    PaymentIntentId        NVARCHAR(255) NOT NULL,
                     InvoiceId              NVARCHAR(255) NULL,
                     Description            NVARCHAR(255) NULL,
                     ReceiptUrl             NVARCHAR(2048) NULL
@@ -232,12 +230,12 @@
         IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'WebhookEvent' AND type = 'U')
         BEGIN
             CREATE TABLE [dbo].[WebhookEvent] (
-                Id              BIGINT PRIMARY KEY IDENTITY(1,1),
-                EventId   NVARCHAR(100) NOT NULL,
-                EventType       NVARCHAR(100) NOT NULL,
-                ReceivedAt      DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-                RawPayload      NVARCHAR(MAX) NOT NULL,
-                Processed       BIT NOT NULL DEFAULT 0
+                Id               BIGINT PRIMARY KEY IDENTITY(1,1),
+                EventId          NVARCHAR(100) NOT NULL,
+                EventType        NVARCHAR(100) NOT NULL,
+                CustomerEmail    NVARCHAR(254) NULL,
+                ReceivedAt       DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                RawPayload       NVARCHAR(MAX) NOT NULL
             );
         END
 

@@ -14,4 +14,10 @@ public class SubscriptionPlanRepository(AppDbContext context): ISubscriptionPlan
     {
         return await _subscriptionPlan.FindActiveByIdAsync(planId);
     }
+    public async Task<SubscriptionPlan?> FindSubscriptionPlanByPriceIdAsync(string priceId)
+    {
+        return await _subscriptionPlan
+            .Where(plan => plan.PriceId == priceId && plan.Status)
+            .FirstOrDefaultAsync();
+    }
 }

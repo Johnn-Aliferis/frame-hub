@@ -26,10 +26,6 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
         builder.Property(us => us.SubscriptionId)
             .IsRequired(false)
             .HasMaxLength(100);
-        
-        builder.Property(us => us.PaymentStatus)
-            .IsRequired(false)
-            .HasMaxLength(50);
 
         builder.Property(us => us.AssignedAt)
             .IsRequired()

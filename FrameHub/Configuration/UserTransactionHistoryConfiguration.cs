@@ -24,10 +24,6 @@ public class UserTransactionHistoryConfiguration  : IEntityTypeConfiguration<Use
             .HasMaxLength(10)
             .IsRequired();
         
-        builder.Property(uth => uth.PaymentIntentId)
-            .HasMaxLength(255)
-            .IsRequired(false);
-        
         builder.Property(uth => uth.InvoiceId)
             .HasMaxLength(255)
             .IsRequired(false);

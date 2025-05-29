@@ -38,10 +38,12 @@ builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 builder.Services.AddTransient<IPaymentSubscriptionService, PaymentSubscriptionService>();
 builder.Services.AddTransient<IStripeService, StripeService>();
+builder.Services.AddTransient<IStripeConsumerService, StripeConsumerService>();
 
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
+builder.Services.AddTransient<IWebhookEventRepository, WebhookEventRepository>();
 
 builder.Services.AddScoped<ISsoService, SsoService>();
 

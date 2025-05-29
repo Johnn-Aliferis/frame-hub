@@ -13,21 +13,22 @@ public class UserRepository(AppDbContext context, ILogger<UserRepository> logger
     private readonly DbSet<ApplicationUser> _user = context.Set<ApplicationUser>();
     private readonly DbSet<UserInfo> _userInfo = context.Set<UserInfo>();
     private readonly DbSet<UserSubscription> _userSubscription = context.Set<UserSubscription>();
-    
+    private readonly DbSet<UserTransactionHistory> _userTransactionHistory = context.Set<UserTransactionHistory>();
+
     public async Task<ApplicationUser?> FindUserByIdAsync(string userId)
     {
-      return await _user.FindAsync(userId);
+        return await _user.FindAsync(userId);
     }
 
     public async Task<ApplicationUser?> FindUserByEmailAsync(string email)
     {
         return await _user
-            .Where(u=> u.Email == email && u.Status)
+            .Where(u => u.Email == email && u.Status)
             .FirstOrDefaultAsync();
     }
-    
+
     public async Task<ApplicationUser> SaveUserAsync(ApplicationUser user)
-    { 
+    {
         await _user.AddAsync(user);
         await context.SaveChangesAsync();
         return user;
@@ -53,13 +54,20 @@ public class UserRepository(AppDbContext context, ILogger<UserRepository> logger
             .Where(us => us.UserId == userId && us.Status)
             .FirstOrDefaultAsync();
     }
-    
+
+    public async Task<UserSubscription?> FindUserSubscriptionByUserEmailAsync(string email)
+    {
+        return await _userSubscription
+            .Where(us => us.User!.Email == email && us.Status)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<UserSubscription> SaveUserSubscriptionAsync(UserSubscription userSubscription)
     {
         try
         {
             var existingSubscription = await _userSubscription.FindActiveByIdAsync(userSubscription.Id);
-            
+
             if (existingSubscription != null)
             {
                 context.Entry(existingSubscription).CurrentValues.SetValues(userSubscription);
@@ -68,13 +76,22 @@ public class UserRepository(AppDbContext context, ILogger<UserRepository> logger
             {
                 await _userSubscription.AddAsync(userSubscription);
             }
+
             await context.SaveChangesAsync();
             return userSubscription;
         }
         catch (Exception ex)
         {
             logger.LogError("An error occurred with message : {}", ex.ToString());
-            throw new GeneralException("An unexpected error occurred during subscription save. ", HttpStatusCode.InternalServerError);
+            throw new GeneralException("An unexpected error occurred during subscription save. ",
+                HttpStatusCode.InternalServerError);
         }
+    }
+
+    public async Task SaveUserTransactionHistoryAsync(
+        UserTransactionHistory userTransactionHistory)
+    {
+        await _userTransactionHistory.AddAsync(userTransactionHistory);
+        await context.SaveChangesAsync();
     }
 }

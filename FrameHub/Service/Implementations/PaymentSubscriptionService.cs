@@ -12,7 +12,6 @@ namespace FrameHub.Service.Implementations;
 public class PaymentSubscriptionService(IUserRepository userRepository,IMapper mapper, IStripeService stripeService)
     : IPaymentSubscriptionService
 {
-    private const string PendingStatus = "Pending";
 
     public async Task<UserSubscriptionDto> CreateSubscriptionAsync(string userId, string email,
         CreateSubscriptionRequestDto createSubscriptionRequest)
@@ -38,8 +37,7 @@ public class PaymentSubscriptionService(IUserRepository userRepository,IMapper m
         var createdSubscriptionId = await stripeService.CreateSubscriptionAsync(customerId,
             createSubscriptionRequest.PriceId, userId, createSubscriptionRequest.PlanName);
         
-        return await UpdateUserSubscriptionWithDetails(currentSubscription, customerId, createdSubscriptionId,
-            PendingStatus);
+        return await UpdateUserSubscriptionWithDetails(currentSubscription, customerId, createdSubscriptionId);
     }
 
     private async Task<UserSubscription?> ValidateUserSubscriptionAsync(string userId)
@@ -75,11 +73,10 @@ public class PaymentSubscriptionService(IUserRepository userRepository,IMapper m
     }
 
     private async Task<UserSubscription> UpdateUserSubscriptionWithDetails(UserSubscription currentSubscription,
-        string customerId, string subscriptionId, string paymentStatus)
+        string customerId, string subscriptionId)
     {
         currentSubscription.CustomerId = customerId;
         currentSubscription.SubscriptionId = subscriptionId;
-        currentSubscription.PaymentStatus = paymentStatus;
 
         return await userRepository.SaveUserSubscriptionAsync(currentSubscription);
     }
