@@ -221,8 +221,7 @@
                     PaymentIntentId        NVARCHAR(255) NOT NULL,
                     InvoiceId              NVARCHAR(255) NULL,
                     Description            NVARCHAR(255) NULL,
-                    ReceiptUrl             NVARCHAR(2048) NULL,
-                    MetadataJson           NVARCHAR(MAX) NULL,
+                    ReceiptUrl             NVARCHAR(2048) NULL
                 
                     CONSTRAINT FK_UserTransactionHistory_AspNetUsers FOREIGN KEY (UserId)
                     REFERENCES [dbo].[AspNetUsers](Id) ON DELETE CASCADE

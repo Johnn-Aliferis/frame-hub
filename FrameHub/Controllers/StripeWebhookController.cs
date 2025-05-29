@@ -9,7 +9,9 @@ namespace FrameHub.Controllers;
 
 [ApiController]
 [Route("api/webhooks/stripe")]
-public class StripeWebhookController(IRabbitMqConnectionProvider brokerProvider) : ControllerBase
+public class StripeWebhookController(
+    IRabbitMqConnectionProvider brokerProvider,
+    ILogger<StripeWebhookController> logger) : ControllerBase
 {
     private readonly string _webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")!;
 
@@ -20,30 +22,31 @@ public class StripeWebhookController(IRabbitMqConnectionProvider brokerProvider)
         var signatureHeader = Request.Headers["Stripe-Signature"];
         var stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _webhookSecret);
 
-        if (stripeEvent.Type == "invoice.payment_succeeded")
-        {
-            // var invoice = stripeEvent.Data.Object as Invoice;
-            // var periodEnd = invoice?.Lines?.Data?.FirstOrDefault()?.Period?.End;
-            // billing_reason --> to distinguish event and proceed with our logic as intended.
-            var channel = await brokerProvider.GetChannelAsync();
-            try
-            {
-                var message = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(stripeEvent));
+        var channel = await brokerProvider.GetChannelAsync();
 
-                await channel.BasicPublishAsync(
-                    exchange: "stripe_events",
-                    routingKey: "stripe.subscription",
-                    mandatory: false,
-                    basicProperties: new BasicProperties(),
-                    body: new ReadOnlyMemory<byte>(message),
-                    cancellationToken: CancellationToken.None
-                );
-            }
-            finally
-            {
-                await channel.CloseAsync();
-            }
+        try
+        {
+            var message = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(stripeEvent));
+
+            var properties = new BasicProperties { Persistent = true };
+
+            logger.LogInformation("Stripe message with type : {} received , forwarding to message broker...",
+                stripeEvent.Type);
+
+            await channel.BasicPublishAsync(
+                exchange: "stripe_events",
+                routingKey: "stripe.subscription",
+                mandatory: false,
+                basicProperties: properties,
+                body: new ReadOnlyMemory<byte>(message),
+                cancellationToken: CancellationToken.None
+            );
         }
+        finally
+        {
+            await channel.CloseAsync();
+        }
+
         return Ok();
     }
 }

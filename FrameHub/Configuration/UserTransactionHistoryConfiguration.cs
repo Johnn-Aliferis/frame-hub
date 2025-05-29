@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FrameHub.Configuration;
 
-public class UserTransactonHistoryConfiguration  : IEntityTypeConfiguration<UserTransactionHistory>
+public class UserTransactionHistoryConfiguration  : IEntityTypeConfiguration<UserTransactionHistory>
 {
     public void Configure(EntityTypeBuilder<UserTransactionHistory> builder)
     {
@@ -26,7 +26,7 @@ public class UserTransactonHistoryConfiguration  : IEntityTypeConfiguration<User
         
         builder.Property(uth => uth.PaymentIntentId)
             .HasMaxLength(255)
-            .IsRequired();
+            .IsRequired(false);
         
         builder.Property(uth => uth.InvoiceId)
             .HasMaxLength(255)
@@ -34,14 +34,10 @@ public class UserTransactonHistoryConfiguration  : IEntityTypeConfiguration<User
 
         builder.Property(uth => uth.Description)
             .HasMaxLength(255)
-            .IsRequired(false);
+            .IsRequired(true);
 
         builder.Property(uth => uth.ReceiptUrl)
             .HasMaxLength(2048)
-            .IsRequired(false);
-
-        builder.Property(uth => uth.MetadataJson)
-            .HasColumnType("nvarchar(max)")
             .IsRequired(false);
         
         builder.HasOne(uth => uth.User)
