@@ -61,6 +61,13 @@ public class UserRepository(AppDbContext context, ILogger<UserRepository> logger
             .Where(us => us.User!.Email == email && us.Status)
             .FirstOrDefaultAsync();
     }
+    
+    public async Task<UserSubscription?> FindUserSubscriptionByCustomerIdAsync(string customerId)
+    {
+        return await _userSubscription
+            .Where(us => us.CustomerId == customerId && us.Status)
+            .FirstOrDefaultAsync();
+    }
 
     public async Task<UserSubscription> SaveUserSubscriptionAsync(UserSubscription userSubscription)
     {

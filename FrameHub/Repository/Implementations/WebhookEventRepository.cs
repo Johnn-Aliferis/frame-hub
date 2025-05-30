@@ -14,4 +14,9 @@ public class WebhookEventRepository(AppDbContext context) : IWebhookEventReposit
         await _events.AddAsync(webhookEvent);
         await context.SaveChangesAsync();
     }
+
+    public async Task<WebhookEvent?> FindWebhookEventByEventIdAsync(string eventId)
+    {
+       return await _events.FirstOrDefaultAsync(webhookEvent => webhookEvent.EventId == eventId);
+    }
 }
