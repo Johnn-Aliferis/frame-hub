@@ -13,7 +13,7 @@ public class SubscriptionController(IPaymentSubscriptionService paymentSubscript
 {
     [HttpPost]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public async Task<IActionResult> CreateSubscription([FromBody] CreateSubscriptionRequestDto createSubscriptionRequestDto)
+    public async Task<IActionResult> CreateSubscription([FromBody] SubscriptionRequestDto subscriptionRequestDto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -23,7 +23,7 @@ public class SubscriptionController(IPaymentSubscriptionService paymentSubscript
             return Unauthorized("User claims missing or invalid.");
         }
         
-        var userSubscription =  await paymentSubscriptionService.CreateSubscriptionAsync(userId, email, createSubscriptionRequestDto);
+        var userSubscription =  await paymentSubscriptionService.CreateSubscriptionAsync(userId, email, subscriptionRequestDto);
         
         return Ok(userSubscription);
     }

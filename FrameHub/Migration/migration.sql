@@ -176,7 +176,8 @@
                 PriceId    NVARCHAR(100) NULL,
                 Description      NVARCHAR(200) NULL,
                 MaxUploads       INT NOT NULL,
-                MonthlyPrice     DECIMAL(10,2) NULL
+                MonthlyPrice     DECIMAL(10,2) NULL,
+                PlanOrder        INT NOT NULL
             );
         END
         
@@ -261,8 +262,8 @@ CREATE INDEX  IX_UserTransactionHistory_UserId ON [UserTransactionHistory] (User
 -- ========================
 -- Seed Data
 -- ========================
-INSERT INTO [dbo].[SubscriptionPlan] (Code, Name, ProductId, PriceId,  Description, MaxUploads, MonthlyPrice)
+INSERT INTO [dbo].[SubscriptionPlan] (Code, Name, ProductId, PriceId,  Description, MaxUploads, MonthlyPrice, PlanOrder)
 VALUES
-    ('BASIC', 'Basic Plan', NULL, NULL, 'Free plan with limited access', 0, 0.00),
-    ('PRO', 'Pro Plan', 'prod_SMeKyTOkn9HmxO', 'price_1RRv2ECQhowdgEANcbQ3xr2s', 'Premium features', 5, 9.99),
-    ('ENTERPRISE', 'Enterprise Plan', 'prod_SMeMuctQXhsOls', 'price_1RRv43CQhowdgEANT13Lza3v', 'Unlimited access', 20, 29.99);
+    ('BASIC', 'Basic Plan', NULL, NULL, 'Free plan with limited access', 0, 0.00, 0),
+    ('PRO', 'Pro Plan', 'prod_SMeKyTOkn9HmxO', 'price_1RRv2ECQhowdgEANcbQ3xr2s', 'Premium features', 5, 9.99,1),
+    ('ENTERPRISE', 'Enterprise Plan', 'prod_SMeMuctQXhsOls', 'price_1RRv43CQhowdgEANT13Lza3v', 'Unlimited access', 20, 29.99, 2);

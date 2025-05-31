@@ -91,14 +91,11 @@ public class StripeConsumerService(
         ValidateInvoiceData(invoice);
         
         // Handle only failed payments from subscription update attempts.
-        if (!invoice!.BillingReason.Equals("subscription_update"))
+        if (invoice!.BillingReason.Equals("subscription_update"))
         {
-            return;
+            // Todo : Find user current subscription in DB , and update it to stripe again (stripe has updated to new plan), 
+            //   And set it to be billed during current end of billing period .
         }
-        
-        // Todo : Find user current subscription in DB , and update it to stripe again (stripe has updated to new plan), 
-        //   And set it to be billed during current end of billing period .
-        
     }
 
     private async Task PersistWebhookData(Event stripeEvent)

@@ -2,7 +2,7 @@
 
 namespace FrameHub.Model.Dto.Subscription;
 
-public class CreateSubscriptionRequestDto
+public class SubscriptionRequestDto
 {
     [Required]
     public required string PaymentMethodId { get; set; }

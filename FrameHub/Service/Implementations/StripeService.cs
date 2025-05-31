@@ -23,15 +23,15 @@ public class StripeService : IStripeService
     {
         var paymentMethodService = new PaymentMethodService();
         var paymentMethod = await paymentMethodService.GetAsync(paymentMethodId);
-        
+
         Console.WriteLine("Attached customer: " + paymentMethod.CustomerId);
-        
+
         if (paymentMethod.CustomerId == customerId)
         {
             Console.WriteLine($"Payment method {paymentMethodId} already attached to customer {customerId}.");
             return; // No need to re-attach
         }
-        
+
         await paymentMethodService.AttachAsync(paymentMethodId,
             new PaymentMethodAttachOptions
             {
@@ -39,10 +39,63 @@ public class StripeService : IStripeService
             });
     }
 
+    public async Task DeleteUserSubscriptionAtEndOfBillingPeriod(string subscriptionId)
+    {
+        var subscriptionService = new SubscriptionService();
+        await subscriptionService.UpdateAsync(subscriptionId, new SubscriptionUpdateOptions
+        {
+            CancelAtPeriodEnd = true
+        });
+    }
+
+    public async Task DowngradeUserSubscriptionAtEndOfBillingPeriod(string subscriptionId, string currentPlanPriceId, string newPlanPriceId)
+    {
+        var subscriptionService = new SubscriptionService();
+        var subscription = await subscriptionService.GetAsync(subscriptionId);
+        var currentPeriodEnd = subscription.Items.Data.First().CurrentPeriodEnd;
+
+        var scheduleOptions = new SubscriptionScheduleCreateOptions
+        {
+            FromSubscription = subscriptionId,
+            Phases =
+            [
+                // Phase 1: Keep current plan
+                new SubscriptionSchedulePhaseOptions
+                {
+                    StartDate = DateTime.UtcNow,
+                    EndDate = currentPeriodEnd,
+                    Items =
+                    [
+                        new SubscriptionSchedulePhaseItemOptions
+                        {
+                            Price = currentPlanPriceId
+                        }
+                    ],
+                    ProrationBehavior = "none"
+                },
+
+                // Phase 2: Downgrade to pro plan
+                new SubscriptionSchedulePhaseOptions
+                {
+                    Items =
+                    [
+                        new SubscriptionSchedulePhaseItemOptions
+                        {
+                            Price = newPlanPriceId
+                        }
+                    ],
+                    ProrationBehavior = "none"
+                }
+            ]
+        };
+        var scheduleService = new SubscriptionScheduleService();
+        await scheduleService.CreateAsync(scheduleOptions);
+    }
+
     public async Task SetDefaultPaymentMethodAsync(string paymentMethodId, string customerId)
     {
         var customerService = new CustomerService();
-        
+
         await customerService.UpdateAsync(customerId, new CustomerUpdateOptions
         {
             InvoiceSettings = new CustomerInvoiceSettingsOptions
@@ -65,10 +118,10 @@ public class StripeService : IStripeService
                 { "plan", planName }
             }
         });
-        
+
         return subscription.Id;
     }
-    
+
     public async Task<string> CreateTestCardPaymentMethodAsync(string token)
     {
         var paymentMethodService = new PaymentMethodService();
@@ -79,26 +132,6 @@ public class StripeService : IStripeService
             Card = new PaymentMethodCardOptions
             {
                 Token = token
-            }
-        });
-
-        return paymentMethod.Id;
-    }
-
-    
-    
-    public async Task<string> CreateTestCardPaymentMethodAsync()
-    {
-        var paymentMethodService = new PaymentMethodService();
-        var paymentMethod = await paymentMethodService.CreateAsync(new PaymentMethodCreateOptions
-        {
-            Type = "card",
-            Card = new PaymentMethodCardOptions
-            {
-                Number = "4242424242424242",
-                ExpMonth = 12,
-                ExpYear = 2026,
-                Cvc = "123"
             }
         });
 

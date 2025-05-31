@@ -38,6 +38,9 @@ public class SubscriptionPlanConfiguration : IEntityTypeConfiguration<Subscripti
 
         builder.Property(sp => sp.MaxUploads)
             .IsRequired();
+        
+        builder.Property(sp => sp.PlanOrder)
+            .IsRequired();
 
         builder.Property(sp => sp.MonthlyPrice)
             .IsRequired()

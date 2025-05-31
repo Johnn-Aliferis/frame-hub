@@ -11,6 +11,7 @@ public class SubscriptionPlan : BaseEntity
     public string? Description { get; set; }
     public int MaxUploads { get; set; }
     public decimal MonthlyPrice { get; set; }
+    public int PlanOrder { get; set; }
     
     public virtual required UserSubscription UserSubscription { get; set; }
 }
