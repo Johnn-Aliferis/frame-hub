@@ -13,7 +13,8 @@ public class StripeService : IStripeService
         var customer = await customerService.CreateAsync(new CustomerCreateOptions
         {
             Email = email,
-            Metadata = new Dictionary<string, string> { { "userId", userId } }
+            Metadata = new Dictionary<string, string> { { "userId", userId } },
+            TestClock = "clock_1RVZd2CQhowdgEAN1yGpbD3j" // todo : remove
         });
 
         return customer.Id;
@@ -59,49 +60,30 @@ public class StripeService : IStripeService
             CancelAtPeriodEnd = true
         });
     }
-
-    public async Task DowngradeUserSubscriptionAtEndOfBillingPeriod(string subscriptionId, string currentPlanPriceId, string newPlanPriceId)
+    
+    public async Task ScheduleNewSubscriptionAtEndOfBillingPeriod(string subscriptionId, string newPlanPriceId)
     {
         var subscriptionService = new SubscriptionService();
         var subscription = await subscriptionService.GetAsync(subscriptionId);
-        var currentPeriodEnd = subscription.Items.Data.First().CurrentPeriodEnd;
-
-        var scheduleOptions = new SubscriptionScheduleCreateOptions
+        
+        // Update subscription to switch to new plan at period end
+        var updateOptions = new SubscriptionUpdateOptions
         {
-            FromSubscription = subscriptionId,
-            Phases =
+            Items =
             [
-                // Phase 1: Keep current plan
-                new SubscriptionSchedulePhaseOptions
+                new SubscriptionItemOptions
                 {
-                    StartDate = DateTime.UtcNow,
-                    EndDate = currentPeriodEnd,
-                    Items =
-                    [
-                        new SubscriptionSchedulePhaseItemOptions
-                        {
-                            Price = currentPlanPriceId
-                        }
-                    ],
-                    ProrationBehavior = "none"
-                },
-
-                // Phase 2: Downgrade to another plan
-                new SubscriptionSchedulePhaseOptions
-                {
-                    Items =
-                    [
-                        new SubscriptionSchedulePhaseItemOptions
-                        {
-                            Price = newPlanPriceId
-                        }
-                    ],
-                    ProrationBehavior = "none"
+                    Id = subscription.Items.Data[0].Id,  
+                    Price = newPlanPriceId,              
+                    Quantity = 1                        
                 }
-            ]
+            ],
+            ProrationBehavior = "none",
+            CancelAtPeriodEnd = false
         };
-        var scheduleService = new SubscriptionScheduleService();
-        await scheduleService.CreateAsync(scheduleOptions);
+        
+        updateOptions.BillingCycleAnchor = SubscriptionBillingCycleAnchor.Unchanged;
+        await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
     }
 
     public async Task UpgradeUserSubscriptionAsync(string subscriptionId, string newPlanPriceId)
@@ -119,27 +101,7 @@ public class StripeService : IStripeService
         };
         await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
     }
-
-    public async Task HandleFailedSubscriptionUpgrade(string invoiceId, string subscriptionId, string previousUserPlanPriceId)
-    {
-        // Do not charge user again after failed payment on upgrade
-        var invoiceService = new InvoiceService();
-        var subscriptionService = new SubscriptionService();
-        await invoiceService.MarkUncollectibleAsync(invoiceId);
-        
-        // Update stripe plan back to previous and avoid invoicing right away.
-        await subscriptionService.UpdateAsync(subscriptionId, new SubscriptionUpdateOptions
-        {
-            Items = [
-                new SubscriptionItemOptions
-                {
-                    Price = previousUserPlanPriceId
-                }
-            ],
-            ProrationBehavior = "none"
-        });
-    }
-
+    
     public async Task SetDefaultPaymentMethodAsync(string paymentMethodId, string customerId)
     {
         var customerService = new CustomerService();

@@ -217,7 +217,7 @@
                     Status                 BIT NOT NULL DEFAULT 1,
                     UserId                 NVARCHAR(450) NOT NULL,
                     Amount                 DECIMAL(10,2) NOT NULL,
-                    Currency               NVARCHAR(10) NOT NULL,
+                    Currency               NVARCHAR(10)  NULL,
                     InvoiceId              NVARCHAR(255) NULL,
                     Description            NVARCHAR(255) NULL,
                     ReceiptUrl             NVARCHAR(2048) NULL,

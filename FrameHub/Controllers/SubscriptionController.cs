@@ -28,7 +28,37 @@ public class SubscriptionController(IPaymentSubscriptionService paymentSubscript
         return Ok(userSubscription);
     }
     
+    [HttpPut("{userSubscriptionId:long}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> UpdateSubscription(long userSubscriptionId, [FromBody] SubscriptionRequestDto subscriptionRequestDto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
+        {
+            return Unauthorized("User claims missing or invalid.");
+        }
+        
+        await paymentSubscriptionService.UpdateSubscriptionAsync(userSubscriptionId,userId, email, subscriptionRequestDto);
+        
+        return Ok("Subscription update request succeeded, you will soon be notified via email");
+    }
     
-    // Todo : Move with next REST api calls --> One for PUT/ PATCH -> Upgrade or Downgrade plan.
-    // Todo : Maybe DELETE for user deleting plan --> Downgrade to Basic Plan.
+    
+    [HttpDelete("{userSubscriptionId:long}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> DeleteSubscription(long userSubscriptionId)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
+        {
+            return Unauthorized("User claims missing or invalid.");
+        }
+        
+        await paymentSubscriptionService.DeleteSubscriptionAsync(userSubscriptionId, userId);
+        return Ok("Subscription will be cancelled at the end of the current billing cycle. You may  using your features until date is due");
+    }
 }

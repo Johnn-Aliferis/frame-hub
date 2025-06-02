@@ -19,43 +19,44 @@ public class StripeConsumerService(
     ILogger<StripeConsumerService> logger)
     : IStripeConsumerService
 {
-
     private const string PaymentSuccessEventType = "invoice.payment_succeeded";
     private const string SubscriptionDeleteEventType = "customer.subscription.deleted";
     private const string PaymentFailedEventType = "invoice.payment_failed";
-        
+
     public async Task HandleMessage(Event? stripeEvent)
     {
         if (stripeEvent is null)
         {
             throw new StripeConsumerException("Message received was null", HttpStatusCode.BadRequest);
         }
-        
+
         // Handle duplicated Event
         var webhookEvent = await webhookEventRepository.FindWebhookEventByEventIdAsync(stripeEvent.Id);
         if (webhookEvent is not null)
         {
             return;
         }
-        
+
         await unitOfWork.BeginTransactionAsync();
         try
         {
             await PersistWebhookData(stripeEvent);
+            Console.WriteLine(stripeEvent.Type);
             switch (stripeEvent.Type)
             {
                 case PaymentSuccessEventType:
                     await HandleInvoicePaymentSuccess(stripeEvent);
                     break;
-                
+
                 case SubscriptionDeleteEventType:
                     await HandleCustomerSubscriptionDelete(stripeEvent);
                     break;
-                
+
                 case PaymentFailedEventType:
                     await HandleFailedSubscriptionUpdate(stripeEvent);
                     break;
             }
+
             await unitOfWork.CommitAsync();
             // Optional future enhancment --> Send email.
         }
@@ -70,37 +71,54 @@ public class StripeConsumerService(
     private async Task HandleInvoicePaymentSuccess(Event stripeEvent)
     {
         var invoice = stripeEvent.Data.Object as Invoice;
+
         ValidateInvoiceData(invoice);
 
-        if (invoice!.BillingReason.Equals("subscription_create") || invoice.BillingReason.Equals("subscription_update"))
+        if (invoice!.BillingReason.Equals("subscription_create")
+            || invoice.BillingReason.Equals("subscription_update")
+            || invoice.BillingReason.Equals("subscription_cycle"))
         {
             await HandleSubscriptionCreation(invoice);
         }
     }
-    
+
     private async Task HandleCustomerSubscriptionDelete(Event stripeEvent)
     {
         var subscription = stripeEvent.Data.Object as Subscription;
+
         ValidateInvoiceCancellationData(subscription);
-        
+
         await HandleSubscriptionCancellation(subscription!);
     }
-    
+
     private async Task HandleFailedSubscriptionUpdate(Event stripeEvent)
     {
         var invoice = stripeEvent.Data.Object as Invoice;
         ValidateInvoiceData(invoice);
-        
+
         if (invoice!.BillingReason.Equals("subscription_update"))
         {
-           var subscriptionId = await stripeService.FindCustomerActiveSubscriptionIdAsync(invoice.CustomerId);
-           if (subscriptionId is null)
-           {
-               throw new StripeConsumerException("User does not have an active subscription in Stripe", HttpStatusCode.BadRequest);
-           }
-           
-           var currentActivePlan = await userRepository.FindUserSubscriptionByUserEmailAsync(invoice.CustomerEmail);
-           await stripeService.HandleFailedSubscriptionUpgrade(invoice.Id,subscriptionId, currentActivePlan!.SubscriptionPlan!.PriceId);
+            var subscriptionId = await stripeService.FindCustomerActiveSubscriptionIdAsync(invoice.CustomerId);
+            if (subscriptionId is null)
+            {
+                throw new StripeConsumerException("User does not have an active subscription in Stripe",
+                    HttpStatusCode.BadRequest);
+            }
+
+            var currentActivePlan = await userRepository.FindUserSubscriptionByUserEmailAsync(invoice.CustomerEmail);
+            await stripeService.ScheduleNewSubscriptionAtEndOfBillingPeriod(subscriptionId, currentActivePlan!.SubscriptionPlan!.PriceId);
+        }
+        else
+        {
+            var subscriptionService = new SubscriptionService();
+            var subscriptionId = invoice.Lines?.Data?.FirstOrDefault()?.Parent?.SubscriptionItemDetails?.Subscription;
+
+            await subscriptionService.CancelAsync(subscriptionId);
+
+            var userSubscription = await userRepository.FindUserSubscriptionByCustomerIdAsync(invoice.CustomerId);
+            var basicSubscription = await FindBasicSubscriptionPlan();
+
+            await CancelUserSubscription(userSubscription!, basicSubscription);
         }
     }
 
@@ -144,12 +162,7 @@ public class StripeConsumerService(
         }
 
         // Downgrade to Basic plan.
-        var subscriptionPlan =
-            await subscriptionPlanRepository.FindSubscriptionPlanByIdAsync((long)SubscriptionPlanId.Basic);
-        if (subscriptionPlan is null)
-        {
-            throw new StripeConsumerException("Cannot find requested plan in DB", HttpStatusCode.BadRequest);
-        }
+        var subscriptionPlan = await FindBasicSubscriptionPlan();
 
         await CancelUserSubscription(userSubscription, subscriptionPlan);
         await PersistUserTransactionHistory(null, userSubscription.UserId, false);
@@ -178,7 +191,7 @@ public class StripeConsumerService(
     private async Task PersistUserTransactionHistory(Invoice? invoice, string userId, bool isCreation)
     {
         UserTransactionHistory userTransactionHistory;
-        var requestedPlan = invoice!.Lines?.Data?.FirstOrDefault()?.Pricing?.PriceDetails?.Price;
+        var requestedPlan = invoice?.Lines?.Data?.FirstOrDefault()?.Pricing?.PriceDetails?.Price;
 
         if (isCreation)
         {
@@ -237,5 +250,17 @@ public class StripeConsumerService(
         {
             throw new StripeConsumerException("Message does not contain user information", HttpStatusCode.BadRequest);
         }
+    }
+
+    private async Task<SubscriptionPlan> FindBasicSubscriptionPlan()
+    {
+        var subscriptionPlan =
+            await subscriptionPlanRepository.FindSubscriptionPlanByIdAsync((long)SubscriptionPlanId.Basic);
+        if (subscriptionPlan is null)
+        {
+            throw new StripeConsumerException("Cannot find requested plan in DB", HttpStatusCode.BadRequest);
+        }
+
+        return subscriptionPlan;
     }
 }

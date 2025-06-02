@@ -4,7 +4,6 @@ using FrameHub.Enum;
 using FrameHub.Exceptions;
 using FrameHub.Model.Dto.Subscription;
 using FrameHub.Model.Entities;
-using FrameHub.Repository.Implementations;
 using FrameHub.Repository.Interfaces;
 using FrameHub.Service.Interfaces;
 
@@ -20,7 +19,7 @@ public class PaymentSubscriptionService(
     public async Task<UserSubscriptionDto> CreateSubscriptionAsync(string userId, string email,
         SubscriptionRequestDto subscriptionRequest)
     {
-        // todo : REMOVE BELOW LINE FOR PRODUCTION , RIGHT NOW ONLY FOR TEST
+        
         subscriptionRequest.PaymentMethodId = await stripeService.CreateTestCardPaymentMethodAsync("tok_visa");
         var currentSubscription = await ValidateUserSubscriptionAsync(userId);
 
@@ -28,10 +27,23 @@ public class PaymentSubscriptionService(
         return mapper.Map<UserSubscriptionDto>(result);
     }
 
-    public async Task UpdateSubscriptionAsync(string userId, string email,
+    public async Task DeleteSubscriptionAsync(long userSubscriptionId, string userId)
+    {
+        var subscriptionId = await userRepository.FindUserSubscriptionByIdAsync(userSubscriptionId);
+        if (subscriptionId is null)
+        {
+            throw new ValidationException("Cannot find subscription",HttpStatusCode.BadRequest);
+        }
+        await stripeService.DeleteUserSubscriptionAtEndOfBillingPeriod(subscriptionId.SubscriptionId!);
+        await AuditTransactionHistory("User Deletion Requested", userId, null);
+    }
+
+    public async Task UpdateSubscriptionAsync(long userSubscriptionId, string userId, string email,
         SubscriptionRequestDto subscriptionRequest)
     {
-        var currentSubscription = await userRepository.FindUserSubscriptionByUserEmailAsync(email);
+        // future enhancement -> re-attach or update payment method and default method.
+        
+        var currentSubscription = await userRepository.FindUserSubscriptionByIdAsync(userSubscriptionId);
         var requestedSubscription =
             await subscriptionPlanRepository.FindSubscriptionPlanByPriceIdAsync(subscriptionRequest.PriceId);
 
@@ -43,9 +55,10 @@ public class PaymentSubscriptionService(
 
         if (currentSubscription!.SubscriptionPlan!.PlanOrder == requestedSubscription.PlanOrder)
         {
-            // Edge case - future handling : User tries to re-subscribe to same plan , possibly after requesting downgrade
+            // Edge case - future handling : User tries to re-subscribe to same plan , after requesting downgrade
             throw new ValidationException("Same plan request currently not supported", HttpStatusCode.BadRequest);
         }
+
 
         if (currentSubscription.SubscriptionPlan.PlanOrder > requestedSubscription.PlanOrder)
         {
@@ -69,8 +82,7 @@ public class PaymentSubscriptionService(
         // Downgrade to another plan --> Bill new plan at end of billing period.
         else
         {
-            await stripeService.DowngradeUserSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!,
-                currentSubscription.SubscriptionPlan!.PriceId, requestedSubscription.PriceId);
+            await stripeService.ScheduleNewSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!, requestedSubscription.PriceId);
             await AuditTransactionHistory("Plan downgrade Requested", userId, requestedSubscription.PriceId);
         }
     }
@@ -96,7 +108,7 @@ public class PaymentSubscriptionService(
 
         return await UpdateUserSubscriptionWithDetails(currentSubscription, customerId, createdSubscriptionId);
     }
-
+    
     private async Task<UserSubscription?> ValidateUserSubscriptionAsync(string userId)
     {
         var currentSubscription = await FindUserSubscriptionAsync(userId);
@@ -143,7 +155,7 @@ public class PaymentSubscriptionService(
     {
         var userTransactionHistory = new UserTransactionHistory
         {
-            Description = "Plan upgrade Requested",
+            Description = description,
             UserId = userId,
             PlanPriceId = planPriceId
         };

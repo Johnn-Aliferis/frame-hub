@@ -22,7 +22,7 @@ public class UserTransactionHistoryConfiguration  : IEntityTypeConfiguration<Use
         
         builder.Property(uth => uth.Currency)
             .HasMaxLength(10)
-            .IsRequired();
+            .IsRequired(false);
         
         builder.Property(uth => uth.InvoiceId)
             .HasMaxLength(255)
