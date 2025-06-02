@@ -14,7 +14,7 @@ public class PaymentSubscriptionService(
     IUserRepository userRepository,
     IMapper mapper,
     IStripeService stripeService,
-    SubscriptionPlanRepository subscriptionPlanRepository)
+    ISubscriptionPlanRepository subscriptionPlanRepository)
     : IPaymentSubscriptionService
 {
     public async Task<UserSubscriptionDto> CreateSubscriptionAsync(string userId, string email,

@@ -56,7 +56,7 @@ public class StripeConsumerService(
                     await HandleFailedSubscriptionUpdate(stripeEvent);
                     break;
             }
-            
+            await unitOfWork.CommitAsync();
             // Optional future enhancment --> Send email.
         }
         catch (Exception ex)
@@ -130,8 +130,6 @@ public class StripeConsumerService(
 
         await PersistUserSubscription(userSubscription, existingPlan, invoice);
         await PersistUserTransactionHistory(invoice, userSubscription.UserId, true);
-
-        await unitOfWork.CommitAsync();
     }
 
     private async Task HandleSubscriptionCancellation(Subscription subscription)
@@ -155,8 +153,6 @@ public class StripeConsumerService(
 
         await CancelUserSubscription(userSubscription, subscriptionPlan);
         await PersistUserTransactionHistory(null, userSubscription.UserId, false);
-
-        await unitOfWork.CommitAsync();
     }
 
     private async Task PersistUserSubscription(UserSubscription userSubscription, SubscriptionPlan existingPlan,
@@ -182,6 +178,8 @@ public class StripeConsumerService(
     private async Task PersistUserTransactionHistory(Invoice? invoice, string userId, bool isCreation)
     {
         UserTransactionHistory userTransactionHistory;
+        var requestedPlan = invoice!.Lines?.Data?.FirstOrDefault()?.Pricing?.PriceDetails?.Price;
+
         if (isCreation)
         {
             userTransactionHistory = new UserTransactionHistory
@@ -189,10 +187,11 @@ public class StripeConsumerService(
                 Amount = invoice!.AmountPaid,
                 Currency = invoice.Currency,
                 InvoiceId = invoice.Id,
-                Description = "PaymentSuccess",
+                Description = "Subscription Created",
                 ReceiptUrl = invoice.HostedInvoiceUrl,
                 UserId = userId,
                 CreatedAt = DateTime.Now,
+                PlanPriceId = requestedPlan
             };
         }
         else
