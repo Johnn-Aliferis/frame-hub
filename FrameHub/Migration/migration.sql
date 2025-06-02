@@ -220,7 +220,8 @@
                     Currency               NVARCHAR(10) NOT NULL,
                     InvoiceId              NVARCHAR(255) NULL,
                     Description            NVARCHAR(255) NULL,
-                    ReceiptUrl             NVARCHAR(2048) NULL
+                    ReceiptUrl             NVARCHAR(2048) NULL,
+                    PlanPriceId            NVARCHAR(50) NULL
                 
                     CONSTRAINT FK_UserTransactionHistory_AspNetUsers FOREIGN KEY (UserId)
                     REFERENCES [dbo].[AspNetUsers](Id) ON DELETE CASCADE

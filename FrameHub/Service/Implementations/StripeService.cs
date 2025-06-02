@@ -24,12 +24,9 @@ public class StripeService : IStripeService
         var paymentMethodService = new PaymentMethodService();
         var paymentMethod = await paymentMethodService.GetAsync(paymentMethodId);
 
-        Console.WriteLine("Attached customer: " + paymentMethod.CustomerId);
-
         if (paymentMethod.CustomerId == customerId)
         {
-            Console.WriteLine($"Payment method {paymentMethodId} already attached to customer {customerId}.");
-            return; // No need to re-attach
+            return;
         }
 
         await paymentMethodService.AttachAsync(paymentMethodId,
@@ -37,6 +34,21 @@ public class StripeService : IStripeService
             {
                 Customer = customerId
             });
+    }
+
+    public async Task<string?> FindCustomerActiveSubscriptionIdAsync(string customerId)
+    {
+        var subscriptionService = new SubscriptionService();
+        var subscriptions = await subscriptionService.ListAsync(new SubscriptionListOptions
+        {
+            Customer = customerId,
+            Status = "active",
+            Limit = 1
+        });
+
+        var subscription = subscriptions.Data.FirstOrDefault();
+
+        return subscription?.Id;
     }
 
     public async Task DeleteUserSubscriptionAtEndOfBillingPeriod(string subscriptionId)
@@ -74,7 +86,7 @@ public class StripeService : IStripeService
                     ProrationBehavior = "none"
                 },
 
-                // Phase 2: Downgrade to pro plan
+                // Phase 2: Downgrade to another plan
                 new SubscriptionSchedulePhaseOptions
                 {
                     Items =
@@ -90,6 +102,42 @@ public class StripeService : IStripeService
         };
         var scheduleService = new SubscriptionScheduleService();
         await scheduleService.CreateAsync(scheduleOptions);
+    }
+
+    public async Task UpgradeUserSubscriptionAsync(string subscriptionId, string newPlanPriceId)
+    {
+        var subscriptionService = new SubscriptionService();
+        var updateOptions = new SubscriptionUpdateOptions
+        {
+            Items = [
+                new SubscriptionItemOptions
+                {
+                    Price = newPlanPriceId
+                }
+            ],
+            ProrationBehavior = "create_prorations", // Charge immediately
+        };
+        await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
+    }
+
+    public async Task HandleFailedSubscriptionUpgrade(string invoiceId, string subscriptionId, string previousUserPlanPriceId)
+    {
+        // Do not charge user again after failed payment on upgrade
+        var invoiceService = new InvoiceService();
+        var subscriptionService = new SubscriptionService();
+        await invoiceService.MarkUncollectibleAsync(invoiceId);
+        
+        // Update stripe plan back to previous and avoid invoicing right away.
+        await subscriptionService.UpdateAsync(subscriptionId, new SubscriptionUpdateOptions
+        {
+            Items = [
+                new SubscriptionItemOptions
+                {
+                    Price = previousUserPlanPriceId
+                }
+            ],
+            ProrationBehavior = "none"
+        });
     }
 
     public async Task SetDefaultPaymentMethodAsync(string paymentMethodId, string customerId)

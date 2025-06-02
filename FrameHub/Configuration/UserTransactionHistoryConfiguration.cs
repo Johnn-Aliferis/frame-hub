@@ -36,6 +36,10 @@ public class UserTransactionHistoryConfiguration  : IEntityTypeConfiguration<Use
             .HasMaxLength(2048)
             .IsRequired(false);
         
+        builder.Property(uth => uth.PlanPriceId)
+            .HasMaxLength(50)
+            .IsRequired(false);
+        
         builder.HasOne(uth => uth.User)
             .WithMany()
             .HasForeignKey(uth => uth.UserId)

@@ -15,6 +15,7 @@ public class StripeConsumerService(
     IUserRepository userRepository,
     ISubscriptionPlanRepository subscriptionPlanRepository,
     IUnitOfWork unitOfWork,
+    IStripeService stripeService,
     ILogger<StripeConsumerService> logger)
     : IStripeConsumerService
 {
@@ -90,11 +91,16 @@ public class StripeConsumerService(
         var invoice = stripeEvent.Data.Object as Invoice;
         ValidateInvoiceData(invoice);
         
-        // Handle only failed payments from subscription update attempts.
         if (invoice!.BillingReason.Equals("subscription_update"))
         {
-            // Todo : Find user current subscription in DB , and update it to stripe again (stripe has updated to new plan), 
-            //   And set it to be billed during current end of billing period .
+           var subscriptionId = await stripeService.FindCustomerActiveSubscriptionIdAsync(invoice.CustomerId);
+           if (subscriptionId is null)
+           {
+               throw new StripeConsumerException("User does not have an active subscription in Stripe", HttpStatusCode.BadRequest);
+           }
+           
+           var currentActivePlan = await userRepository.FindUserSubscriptionByUserEmailAsync(invoice.CustomerEmail);
+           await stripeService.HandleFailedSubscriptionUpgrade(invoice.Id,subscriptionId, currentActivePlan!.SubscriptionPlan!.PriceId);
         }
     }
 
@@ -186,7 +192,7 @@ public class StripeConsumerService(
                 Description = "PaymentSuccess",
                 ReceiptUrl = invoice.HostedInvoiceUrl,
                 UserId = userId,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
             };
         }
         else

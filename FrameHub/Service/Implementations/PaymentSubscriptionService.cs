@@ -24,67 +24,67 @@ public class PaymentSubscriptionService(
         subscriptionRequest.PaymentMethodId = await stripeService.CreateTestCardPaymentMethodAsync("tok_visa");
         var currentSubscription = await ValidateUserSubscriptionAsync(userId);
 
-        var result = await HandleStripeSubscription(currentSubscription!, userId, email, subscriptionRequest, true);
+        var result = await HandleStripeSubscription(currentSubscription!, userId, email, subscriptionRequest);
         return mapper.Map<UserSubscriptionDto>(result);
     }
 
-    public async Task<UserSubscriptionDto> UpdateSubscriptionAsync(string userId, string email,
+    public async Task UpdateSubscriptionAsync(string userId, string email,
         SubscriptionRequestDto subscriptionRequest)
     {
-        // 1) Find user current sub and requested. 
         var currentSubscription = await userRepository.FindUserSubscriptionByUserEmailAsync(email);
         var requestedSubscription =
             await subscriptionPlanRepository.FindSubscriptionPlanByPriceIdAsync(subscriptionRequest.PriceId);
 
         if (requestedSubscription is null)
         {
-            throw new ValidationException("A subscription with the requested price does not exist.",
+            throw new ValidationException("A subscription with the requested priceId does not exist.",
                 HttpStatusCode.BadRequest);
         }
 
         if (currentSubscription!.SubscriptionPlan!.PlanOrder == requestedSubscription.PlanOrder)
         {
-            // tries to update to same , trow error.
-            throw new ValidationException("User is already subscribed with this plan", HttpStatusCode.BadRequest);
+            // Edge case - future handling : User tries to re-subscribe to same plan , possibly after requesting downgrade
+            throw new ValidationException("Same plan request currently not supported", HttpStatusCode.BadRequest);
         }
 
-        else if (currentSubscription.SubscriptionPlan.PlanOrder > requestedSubscription.PlanOrder)
+        if (currentSubscription.SubscriptionPlan.PlanOrder > requestedSubscription.PlanOrder)
         {
-            // Downgrade subscription , handle different cases :
-            // 1) Downgrade to basic plan --> delete subscription
-            if (requestedSubscription.Id.Equals((long)SubscriptionPlanId.Basic))
-            {
-                await stripeService.DeleteUserSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!);
-                // Audit transaction History .
-                var userTransactionHistory = new UserTransactionHistory
-                {
-                    Description = "User Deletion Requested",
-                    UserId = userId,
-                };
-                await userRepository.SaveUserTransactionHistoryAsync(userTransactionHistory);
-            }
-            // 2) Downgrade to another plan --> Bill new plan at end of billing period.
-            else
-            {
-                // Schedule a payment at end of billing period with new plan details.
-                // Rest is handled in webhooks.
-                await stripeService.DowngradeUserSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!,
-                    currentSubscription.SubscriptionPlan.PriceId,requestedSubscription.PriceId);
-            }
-
-            // 2) Downgrade to another plan --> make request to stripe and have it billed at end of current billing period.
+            await DowngradeSubscription(requestedSubscription,currentSubscription, userId);
         }
         else if (currentSubscription.SubscriptionPlan.PlanOrder < requestedSubscription.PlanOrder)
         {
-            // Upgrade subscription 
-            // Here we upgrade subscription and we charged immediatelly. 
-            // next in webhooks , we check -> if success full , new plan starts now.
-            // If not successfull --> we update again user back to his current plan with which he will be billed again at the end of curent billing period
+            await UpgradeSubscription(requestedSubscription,currentSubscription, userId);
         }
     }
 
+    private async Task DowngradeSubscription(SubscriptionPlan requestedSubscription,
+        UserSubscription currentSubscription, string userId)
+    {
+        //  Downgrade to basic plan --> Delete subscription
+        if (requestedSubscription.Id.Equals((long)SubscriptionPlanId.Basic))
+        {
+            await stripeService.DeleteUserSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!);
+            await AuditTransactionHistory("User Deletion Requested", userId, null);
+        }
+        // Downgrade to another plan --> Bill new plan at end of billing period.
+        else
+        {
+            await stripeService.DowngradeUserSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!,
+                currentSubscription.SubscriptionPlan!.PriceId, requestedSubscription.PriceId);
+            await AuditTransactionHistory("Plan downgrade Requested", userId, requestedSubscription.PriceId);
+        }
+    }
+
+    private async Task UpgradeSubscription(SubscriptionPlan requestedSubscription, UserSubscription currentSubscription,
+        string userId)
+    {
+        await stripeService.UpgradeUserSubscriptionAsync(currentSubscription.SubscriptionId!,
+            requestedSubscription.PriceId);
+        await AuditTransactionHistory("Plan upgrade Requested", userId, requestedSubscription.PriceId);
+    }
+
     private async Task<UserSubscription> HandleStripeSubscription(UserSubscription currentSubscription, string userId,
-        string email, SubscriptionRequestDto subscriptionRequest, bool isNewSubscription)
+        string email, SubscriptionRequestDto subscriptionRequest)
     {
         var customerId = await GetOrCreateCustomerAsync(userId, email, currentSubscription);
 
@@ -137,5 +137,16 @@ public class PaymentSubscriptionService(
         currentSubscription.SubscriptionId = subscriptionId;
 
         return await userRepository.SaveUserSubscriptionAsync(currentSubscription);
+    }
+
+    private async Task AuditTransactionHistory(string description, string userId, string? planPriceId)
+    {
+        var userTransactionHistory = new UserTransactionHistory
+        {
+            Description = "Plan upgrade Requested",
+            UserId = userId,
+            PlanPriceId = planPriceId
+        };
+        await userRepository.SaveUserTransactionHistoryAsync(userTransactionHistory);
     }
 }
