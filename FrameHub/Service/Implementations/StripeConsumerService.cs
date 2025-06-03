@@ -41,7 +41,6 @@ public class StripeConsumerService(
         try
         {
             await PersistWebhookData(stripeEvent);
-            Console.WriteLine(stripeEvent.Type);
             switch (stripeEvent.Type)
             {
                 case PaymentSuccessEventType:
@@ -110,15 +109,18 @@ public class StripeConsumerService(
         }
         else
         {
-            var subscriptionService = new SubscriptionService();
-            var subscriptionId = invoice.Lines?.Data?.FirstOrDefault()?.Parent?.SubscriptionItemDetails?.Subscription;
+            if (!invoice.BillingReason.Equals("subscription_cycle"))
+            {
+                var subscriptionService = new SubscriptionService();
+                var subscriptionId = invoice.Lines?.Data?.FirstOrDefault()?.Parent?.SubscriptionItemDetails?.Subscription;
 
-            await subscriptionService.CancelAsync(subscriptionId);
+                await subscriptionService.CancelAsync(subscriptionId);
 
-            var userSubscription = await userRepository.FindUserSubscriptionByCustomerIdAsync(invoice.CustomerId);
-            var basicSubscription = await FindBasicSubscriptionPlan();
+                var userSubscription = await userRepository.FindUserSubscriptionByCustomerIdAsync(invoice.CustomerId);
+                var basicSubscription = await FindBasicSubscriptionPlan();
 
-            await CancelUserSubscription(userSubscription!, basicSubscription);
+                await CancelUserSubscription(userSubscription!, basicSubscription);
+            }
         }
     }
 

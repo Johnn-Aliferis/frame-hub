@@ -172,8 +172,8 @@
                 Status           BIT NOT NULL DEFAULT 1,
                 Code             NVARCHAR(20) NOT NULL,
                 Name             NVARCHAR(50) NOT NULL,
-                ProductId  NVARCHAR(100) NULL,
-                PriceId    NVARCHAR(100) NULL,
+                ProductId        NVARCHAR(100) NOT NULL,
+                PriceId          NVARCHAR(100) NOT NULL,
                 Description      NVARCHAR(200) NULL,
                 MaxUploads       INT NOT NULL,
                 MonthlyPrice     DECIMAL(10,2) NULL,
@@ -265,6 +265,6 @@ CREATE INDEX  IX_UserTransactionHistory_UserId ON [UserTransactionHistory] (User
 -- ========================
 INSERT INTO [dbo].[SubscriptionPlan] (Code, Name, ProductId, PriceId,  Description, MaxUploads, MonthlyPrice, PlanOrder)
 VALUES
-    ('BASIC', 'Basic Plan', NULL, NULL, 'Free plan with limited access', 0, 0.00, 0),
+    ('BASIC', 'Basic Plan', 'prod_basic', 'price_basic', 'Free plan with limited access', 0, 0.00, 0),
     ('PRO', 'Pro Plan', 'prod_SMeKyTOkn9HmxO', 'price_1RRv2ECQhowdgEANcbQ3xr2s', 'Premium features', 5, 9.99,1),
     ('ENTERPRISE', 'Enterprise Plan', 'prod_SMeMuctQXhsOls', 'price_1RRv43CQhowdgEANT13Lza3v', 'Unlimited access', 20, 29.99, 2);

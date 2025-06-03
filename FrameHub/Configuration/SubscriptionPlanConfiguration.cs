@@ -25,11 +25,11 @@ public class SubscriptionPlanConfiguration : IEntityTypeConfiguration<Subscripti
             .HasMaxLength(50);
         
         builder.Property(sp => sp.ProductId)
-            .IsRequired(false)
+            .IsRequired()
             .HasMaxLength(100);
         
         builder.Property(sp => sp.PriceId)
-            .IsRequired(false)
+            .IsRequired()
             .HasMaxLength(100);
         
         builder.Property(sp => sp.Description)

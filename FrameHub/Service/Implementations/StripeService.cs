@@ -14,7 +14,7 @@ public class StripeService : IStripeService
         {
             Email = email,
             Metadata = new Dictionary<string, string> { { "userId", userId } },
-            TestClock = "clock_1RVZd2CQhowdgEAN1yGpbD3j" // todo : remove
+            TestClock = "clock_1RVwLHCQhowdgEANIe81UiOn" // todo : remove
         });
 
         return customer.Id;
@@ -89,16 +89,24 @@ public class StripeService : IStripeService
     public async Task UpgradeUserSubscriptionAsync(string subscriptionId, string newPlanPriceId)
     {
         var subscriptionService = new SubscriptionService();
+        var currentSubscription = await subscriptionService.GetAsync(subscriptionId);
+        var existingItemId = currentSubscription.Items.Data.First().Id;
+        
         var updateOptions = new SubscriptionUpdateOptions
         {
             Items = [
                 new SubscriptionItemOptions
                 {
+                    Id = existingItemId,
                     Price = newPlanPriceId
                 }
             ],
             ProrationBehavior = "create_prorations", // Charge immediately
+            CollectionMethod = "charge_automatically"
         };
+        // todo : Fix this - currently throwing error. 
+        updateOptions.AddExtraParam("payment_behavior", "default_incomplete");
+
         await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
     }
     

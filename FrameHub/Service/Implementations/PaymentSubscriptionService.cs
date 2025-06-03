@@ -19,7 +19,6 @@ public class PaymentSubscriptionService(
     public async Task<UserSubscriptionDto> CreateSubscriptionAsync(string userId, string email,
         SubscriptionRequestDto subscriptionRequest)
     {
-        
         subscriptionRequest.PaymentMethodId = await stripeService.CreateTestCardPaymentMethodAsync("tok_visa");
         var currentSubscription = await ValidateUserSubscriptionAsync(userId);
 
@@ -32,8 +31,9 @@ public class PaymentSubscriptionService(
         var subscriptionId = await userRepository.FindUserSubscriptionByIdAsync(userSubscriptionId);
         if (subscriptionId is null)
         {
-            throw new ValidationException("Cannot find subscription",HttpStatusCode.BadRequest);
+            throw new ValidationException("Cannot find subscription", HttpStatusCode.BadRequest);
         }
+
         await stripeService.DeleteUserSubscriptionAtEndOfBillingPeriod(subscriptionId.SubscriptionId!);
         await AuditTransactionHistory("User Deletion Requested", userId, null);
     }
@@ -41,8 +41,8 @@ public class PaymentSubscriptionService(
     public async Task UpdateSubscriptionAsync(long userSubscriptionId, string userId, string email,
         SubscriptionRequestDto subscriptionRequest)
     {
-        // future enhancement -> re-attach or update payment method and default method.
-        
+        // Future enhancement -> re-attach or update payment method and default method.
+
         var currentSubscription = await userRepository.FindUserSubscriptionByIdAsync(userSubscriptionId);
         var requestedSubscription =
             await subscriptionPlanRepository.FindSubscriptionPlanByPriceIdAsync(subscriptionRequest.PriceId);
@@ -55,19 +55,25 @@ public class PaymentSubscriptionService(
 
         if (currentSubscription!.SubscriptionPlan!.PlanOrder == requestedSubscription.PlanOrder)
         {
-            // Edge case - future handling : User tries to re-subscribe to same plan , after requesting downgrade
-            throw new ValidationException("Same plan request currently not supported", HttpStatusCode.BadRequest);
+            await ApplySameSubscription(requestedSubscription, currentSubscription, userId);
         }
-
 
         if (currentSubscription.SubscriptionPlan.PlanOrder > requestedSubscription.PlanOrder)
         {
-            await DowngradeSubscription(requestedSubscription,currentSubscription, userId);
+            await DowngradeSubscription(requestedSubscription, currentSubscription, userId);
         }
         else if (currentSubscription.SubscriptionPlan.PlanOrder < requestedSubscription.PlanOrder)
         {
-            await UpgradeSubscription(requestedSubscription,currentSubscription, userId);
+            await UpgradeSubscription(requestedSubscription, currentSubscription, userId);
         }
+    }
+
+    private async Task ApplySameSubscription(SubscriptionPlan requestedSubscription,
+        UserSubscription currentSubscription, string userId)
+    {
+        await stripeService.ScheduleNewSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!,
+            requestedSubscription.PriceId);
+        await AuditTransactionHistory("Plan downgrade Requested", userId, requestedSubscription.PriceId);
     }
 
     private async Task DowngradeSubscription(SubscriptionPlan requestedSubscription,
@@ -82,7 +88,8 @@ public class PaymentSubscriptionService(
         // Downgrade to another plan --> Bill new plan at end of billing period.
         else
         {
-            await stripeService.ScheduleNewSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!, requestedSubscription.PriceId);
+            await stripeService.ScheduleNewSubscriptionAtEndOfBillingPeriod(currentSubscription.SubscriptionId!,
+                requestedSubscription.PriceId);
             await AuditTransactionHistory("Plan downgrade Requested", userId, requestedSubscription.PriceId);
         }
     }
@@ -108,7 +115,7 @@ public class PaymentSubscriptionService(
 
         return await UpdateUserSubscriptionWithDetails(currentSubscription, customerId, createdSubscriptionId);
     }
-    
+
     private async Task<UserSubscription?> ValidateUserSubscriptionAsync(string userId)
     {
         var currentSubscription = await FindUserSubscriptionAsync(userId);
