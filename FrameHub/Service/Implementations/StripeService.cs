@@ -14,7 +14,7 @@ public class StripeService : IStripeService
         {
             Email = email,
             Metadata = new Dictionary<string, string> { { "userId", userId } },
-            TestClock = "clock_1RVwLHCQhowdgEANIe81UiOn" // todo : remove
+            TestClock = "clock_1RWI4dCQhowdgEANmiuvOTdL" // todo : remove
         });
 
         return customer.Id;
@@ -101,13 +101,22 @@ public class StripeService : IStripeService
                     Price = newPlanPriceId
                 }
             ],
-            ProrationBehavior = "create_prorations", // Charge immediately
-            CollectionMethod = "charge_automatically"
+            ProrationBehavior = "none",
+            CollectionMethod = "charge_automatically",
+            BillingCycleAnchor = SubscriptionBillingCycleAnchor.Now
         };
-        // todo : Fix this - currently throwing error. 
-        updateOptions.AddExtraParam("payment_behavior", "default_incomplete");
-
-        await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
+        var updatedSubscription = await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
+        
+        // Create separate invoice for the new charge
+        
+        var invoiceService = new InvoiceService(); 
+        await invoiceService.CreateAsync(new InvoiceCreateOptions
+        {
+            Customer = updatedSubscription.CustomerId,
+            Subscription = updatedSubscription.Id,
+            AutoAdvance = true // Automatically try to pay
+        });
+        
     }
     
     public async Task SetDefaultPaymentMethodAsync(string paymentMethodId, string customerId)

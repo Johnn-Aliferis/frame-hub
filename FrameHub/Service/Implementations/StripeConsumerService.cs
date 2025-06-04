@@ -97,7 +97,7 @@ public class StripeConsumerService(
 
         if (invoice!.BillingReason.Equals("subscription_update"))
         {
-            var subscriptionId = await stripeService.FindCustomerActiveSubscriptionIdAsync(invoice.CustomerId);
+            var subscriptionId = invoice.Lines?.Data?.FirstOrDefault()?.Parent?.SubscriptionItemDetails?.Subscription;
             if (subscriptionId is null)
             {
                 throw new StripeConsumerException("User does not have an active subscription in Stripe",
@@ -106,6 +106,7 @@ public class StripeConsumerService(
 
             var currentActivePlan = await userRepository.FindUserSubscriptionByUserEmailAsync(invoice.CustomerEmail);
             await stripeService.ScheduleNewSubscriptionAtEndOfBillingPeriod(subscriptionId, currentActivePlan!.SubscriptionPlan!.PriceId);
+            // (not working , find another solution if possible). mark here invoice Id as uncollectable -- In stripe its in past due. 
         }
         else
         {
@@ -119,7 +120,7 @@ public class StripeConsumerService(
                 var userSubscription = await userRepository.FindUserSubscriptionByCustomerIdAsync(invoice.CustomerId);
                 var basicSubscription = await FindBasicSubscriptionPlan();
 
-                await CancelUserSubscription(userSubscription!, basicSubscription);
+                await CancelUserSubscription(userSubscription!, basicSubscription); // todo : remove also customerId possibly.
             }
         }
     }
