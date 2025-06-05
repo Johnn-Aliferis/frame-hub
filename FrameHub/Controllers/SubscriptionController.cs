@@ -59,6 +59,6 @@ public class SubscriptionController(IPaymentSubscriptionService paymentSubscript
         }
         
         await paymentSubscriptionService.DeleteSubscriptionAsync(userSubscriptionId, userId);
-        return Ok("Subscription will be cancelled at the end of the current billing cycle. You may  using your features until date is due");
+        return Ok("Subscription will be cancelled at the end of the current billing cycle. You may continue using your features until date is due");
     }
 }

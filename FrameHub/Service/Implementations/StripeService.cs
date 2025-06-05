@@ -3,18 +3,20 @@ using Stripe;
 
 namespace FrameHub.Service.Implementations;
 
-public class StripeService : IStripeService
+public class StripeService(
+    CustomerService customerService,
+    PaymentMethodService paymentMethodService,
+    SubscriptionService subscriptionService,
+    InvoiceService invoiceService) : IStripeService
 {
     public async Task<string> CreateCustomerAsync(string userId, string email)
     {
         // Create customer in Stripe
-        var customerService = new CustomerService();
-
         var customer = await customerService.CreateAsync(new CustomerCreateOptions
         {
             Email = email,
             Metadata = new Dictionary<string, string> { { "userId", userId } },
-            TestClock = "clock_1RWeNpCQhowdgEANSnbRhNxy" // todo : remove
+            TestClock = "clock_1RWeNpCQhowdgEANSnbRhNxy"
         });
 
         return customer.Id;
@@ -22,7 +24,6 @@ public class StripeService : IStripeService
 
     public async Task AttachPaymentMethodAsync(string paymentMethodId, string customerId)
     {
-        var paymentMethodService = new PaymentMethodService();
         var paymentMethod = await paymentMethodService.GetAsync(paymentMethodId);
 
         if (paymentMethod.CustomerId == customerId)
@@ -37,24 +38,8 @@ public class StripeService : IStripeService
             });
     }
 
-    public async Task<string?> FindCustomerActiveSubscriptionIdAsync(string customerId)
-    {
-        var subscriptionService = new SubscriptionService();
-        var subscriptions = await subscriptionService.ListAsync(new SubscriptionListOptions
-        {
-            Customer = customerId,
-            Status = "active",
-            Limit = 1
-        });
-
-        var subscription = subscriptions.Data.FirstOrDefault();
-
-        return subscription?.Id;
-    }
-
     public async Task DeleteUserSubscriptionAtEndOfBillingPeriod(string subscriptionId)
     {
-        var subscriptionService = new SubscriptionService();
         await subscriptionService.UpdateAsync(subscriptionId, new SubscriptionUpdateOptions
         {
             CancelAtPeriodEnd = true
@@ -63,7 +48,6 @@ public class StripeService : IStripeService
 
     public async Task ScheduleNewSubscriptionAtEndOfBillingPeriod(string subscriptionId, string newPlanPriceId)
     {
-        var subscriptionService = new SubscriptionService();
         var subscription = await subscriptionService.GetAsync(subscriptionId);
 
         // Update subscription to switch to new plan at period end
@@ -88,7 +72,6 @@ public class StripeService : IStripeService
 
     public async Task UpgradeUserSubscriptionAsync(string subscriptionId, string newPlanPriceId)
     {
-        var subscriptionService = new SubscriptionService();
         var currentSubscription = await subscriptionService.GetAsync(subscriptionId);
         var existingItemId = currentSubscription.Items.Data.First().Id;
 
@@ -109,20 +92,17 @@ public class StripeService : IStripeService
         var updatedSubscription = await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
 
         // Create separate invoice for the new charge
-
-        var invoiceService = new InvoiceService();
         await invoiceService.CreateAsync(new InvoiceCreateOptions
         {
             Customer = updatedSubscription.CustomerId,
             Subscription = updatedSubscription.Id,
-            AutoAdvance = true // Automatically try to pay
+            AutoAdvance = true
         });
     }
 
     public async Task RevertUserSubscriptionAsync(string subscriptionId, string previousPriceId,
         DateTime? originalEndPeriod)
     {
-        var subscriptionService = new SubscriptionService();
         var currentSubscription = await subscriptionService.GetAsync(subscriptionId);
         var existingItemId = currentSubscription.Items.Data.First().Id;
 
@@ -145,8 +125,6 @@ public class StripeService : IStripeService
 
     public async Task SetDefaultPaymentMethodAsync(string paymentMethodId, string customerId)
     {
-        var customerService = new CustomerService();
-
         await customerService.UpdateAsync(customerId, new CustomerUpdateOptions
         {
             InvoiceSettings = new CustomerInvoiceSettingsOptions
@@ -158,7 +136,6 @@ public class StripeService : IStripeService
 
     public async Task<string> CreateSubscriptionAsync(string customerId, string priceId, string userId, string planName)
     {
-        var subscriptionService = new SubscriptionService();
         var subscription = await subscriptionService.CreateAsync(new SubscriptionCreateOptions
         {
             Customer = customerId,
@@ -175,8 +152,6 @@ public class StripeService : IStripeService
 
     public async Task<string> CreateTestCardPaymentMethodAsync(string token)
     {
-        var paymentMethodService = new PaymentMethodService();
-
         var paymentMethod = await paymentMethodService.CreateAsync(new PaymentMethodCreateOptions
         {
             Type = "card",
@@ -185,7 +160,7 @@ public class StripeService : IStripeService
                 Token = token
             }
         });
-
+        
         return paymentMethod.Id;
     }
 }

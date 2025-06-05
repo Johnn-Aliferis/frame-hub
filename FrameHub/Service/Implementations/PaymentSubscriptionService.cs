@@ -28,6 +28,7 @@ public class PaymentSubscriptionService(
 
     public async Task DeleteSubscriptionAsync(long userSubscriptionId, string userId)
     {
+        // Todo : Lock resources per user -> Check given subscription Id and if it matches with the userId from JWT token .
         var subscriptionId = await userRepository.FindUserSubscriptionByIdAsync(userSubscriptionId);
         if (subscriptionId is null)
         {
@@ -44,6 +45,7 @@ public class PaymentSubscriptionService(
         // Future enhancement -> re-attach or update payment method and default method.
 
         var currentSubscription = await userRepository.FindUserSubscriptionByIdAsync(userSubscriptionId);
+        
         var requestedSubscription =
             await subscriptionPlanRepository.FindSubscriptionPlanByPriceIdAsync(subscriptionRequest.PriceId);
 

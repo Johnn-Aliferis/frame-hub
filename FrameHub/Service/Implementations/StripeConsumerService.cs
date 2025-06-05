@@ -118,7 +118,7 @@ public class StripeConsumerService(
                 var userSubscription = await userRepository.FindUserSubscriptionByCustomerIdAsync(invoice.CustomerId);
                 var basicSubscription = await FindBasicSubscriptionPlan();
 
-                await CancelUserSubscription(userSubscription!, basicSubscription); // todo : remove also customerId possibly.
+                await CancelUserSubscription(userSubscription!, basicSubscription);
             }
         }
     }
@@ -197,10 +197,10 @@ public class StripeConsumerService(
         {
             userTransactionHistory = new UserTransactionHistory
             {
-                Amount = invoice!.AmountPaid,
+                Amount = (decimal)invoice!.AmountPaid / 100,
                 Currency = invoice.Currency,
                 InvoiceId = invoice.Id,
-                Description = "Subscription Created", // Todo : Better naming as this occurs even on trials(failed upgrades etc)
+                Description = "Subscription Created/Paid ",
                 ReceiptUrl = invoice.HostedInvoiceUrl,
                 UserId = userId,
                 CreatedAt = DateTime.Now,
