@@ -13,4 +13,5 @@ public interface IStripeService
     Task UpgradeUserSubscriptionAsync(string subscriptionId, string newPlanPriceId);
     Task<string> CreateSubscriptionAsync(string customerId, string priceId, string userId, string planName);
     Task<string> CreateTestCardPaymentMethodAsync(string token);
+    Task RevertUserSubscriptionAsync(string subscriptionId, string previousPriceId, DateTime? originalEndPeriod);
 }

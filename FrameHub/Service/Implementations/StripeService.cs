@@ -14,7 +14,7 @@ public class StripeService : IStripeService
         {
             Email = email,
             Metadata = new Dictionary<string, string> { { "userId", userId } },
-            TestClock = "clock_1RWI4dCQhowdgEANmiuvOTdL" // todo : remove
+            TestClock = "clock_1RWeNpCQhowdgEANSnbRhNxy" // todo : remove
         });
 
         return customer.Id;
@@ -60,12 +60,12 @@ public class StripeService : IStripeService
             CancelAtPeriodEnd = true
         });
     }
-    
+
     public async Task ScheduleNewSubscriptionAtEndOfBillingPeriod(string subscriptionId, string newPlanPriceId)
     {
         var subscriptionService = new SubscriptionService();
         var subscription = await subscriptionService.GetAsync(subscriptionId);
-        
+
         // Update subscription to switch to new plan at period end
         var updateOptions = new SubscriptionUpdateOptions
         {
@@ -73,15 +73,15 @@ public class StripeService : IStripeService
             [
                 new SubscriptionItemOptions
                 {
-                    Id = subscription.Items.Data[0].Id,  
-                    Price = newPlanPriceId,              
-                    Quantity = 1                        
+                    Id = subscription.Items.Data[0].Id,
+                    Price = newPlanPriceId,
+                    Quantity = 1
                 }
             ],
             ProrationBehavior = "none",
             CancelAtPeriodEnd = false
         };
-        
+
         updateOptions.BillingCycleAnchor = SubscriptionBillingCycleAnchor.Unchanged;
         await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
     }
@@ -91,10 +91,11 @@ public class StripeService : IStripeService
         var subscriptionService = new SubscriptionService();
         var currentSubscription = await subscriptionService.GetAsync(subscriptionId);
         var existingItemId = currentSubscription.Items.Data.First().Id;
-        
+
         var updateOptions = new SubscriptionUpdateOptions
         {
-            Items = [
+            Items =
+            [
                 new SubscriptionItemOptions
                 {
                     Id = existingItemId,
@@ -106,19 +107,42 @@ public class StripeService : IStripeService
             BillingCycleAnchor = SubscriptionBillingCycleAnchor.Now
         };
         var updatedSubscription = await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
-        
+
         // Create separate invoice for the new charge
-        
-        var invoiceService = new InvoiceService(); 
+
+        var invoiceService = new InvoiceService();
         await invoiceService.CreateAsync(new InvoiceCreateOptions
         {
             Customer = updatedSubscription.CustomerId,
             Subscription = updatedSubscription.Id,
             AutoAdvance = true // Automatically try to pay
         });
-        
     }
-    
+
+    public async Task RevertUserSubscriptionAsync(string subscriptionId, string previousPriceId,
+        DateTime? originalEndPeriod)
+    {
+        var subscriptionService = new SubscriptionService();
+        var currentSubscription = await subscriptionService.GetAsync(subscriptionId);
+        var existingItemId = currentSubscription.Items.Data.First().Id;
+
+        var revertOptions = new SubscriptionUpdateOptions
+        {
+            Items =
+            [
+                new SubscriptionItemOptions
+                {
+                    Id = existingItemId,
+                    Price = previousPriceId
+                }
+            ],
+            ProrationBehavior = "none",
+            PaymentBehavior = "allow_incomplete",
+            TrialEnd = originalEndPeriod
+        };
+        await subscriptionService.UpdateAsync(subscriptionId, revertOptions);
+    }
+
     public async Task SetDefaultPaymentMethodAsync(string paymentMethodId, string customerId)
     {
         var customerService = new CustomerService();

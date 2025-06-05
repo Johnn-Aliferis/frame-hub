@@ -103,10 +103,8 @@ public class StripeConsumerService(
                 throw new StripeConsumerException("User does not have an active subscription in Stripe",
                     HttpStatusCode.BadRequest);
             }
-
             var currentActivePlan = await userRepository.FindUserSubscriptionByUserEmailAsync(invoice.CustomerEmail);
-            await stripeService.ScheduleNewSubscriptionAtEndOfBillingPeriod(subscriptionId, currentActivePlan!.SubscriptionPlan!.PriceId);
-            // (not working , find another solution if possible). mark here invoice Id as uncollectable -- In stripe its in past due. 
+            await stripeService.RevertUserSubscriptionAsync(subscriptionId,currentActivePlan!.SubscriptionPlan!.PriceId,currentActivePlan.ExpiresAt);
         }
         else
         {
@@ -163,7 +161,6 @@ public class StripeConsumerService(
             throw new StripeConsumerException("Cannot find user subscription associated with given information",
                 HttpStatusCode.BadRequest);
         }
-
         // Downgrade to Basic plan.
         var subscriptionPlan = await FindBasicSubscriptionPlan();
 
@@ -203,7 +200,7 @@ public class StripeConsumerService(
                 Amount = invoice!.AmountPaid,
                 Currency = invoice.Currency,
                 InvoiceId = invoice.Id,
-                Description = "Subscription Created",
+                Description = "Subscription Created", // Todo : Better naming as this occurs even on trials(failed upgrades etc)
                 ReceiptUrl = invoice.HostedInvoiceUrl,
                 UserId = userId,
                 CreatedAt = DateTime.Now,
@@ -222,7 +219,6 @@ public class StripeConsumerService(
 
         await userRepository.SaveUserTransactionHistoryAsync(userTransactionHistory);
     }
-
 
     private static void ValidateInvoiceData(Invoice? invoice)
     {
