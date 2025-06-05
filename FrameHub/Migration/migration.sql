@@ -227,6 +227,27 @@
                     REFERENCES [dbo].[AspNetUsers](Id) ON DELETE CASCADE
                 );
             END
+            
+        -- SubscriptionUpgradeInfo  
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'SubscriptionUpgradeInfo' AND type = 'U')
+            BEGIN
+                CREATE TABLE [dbo].[SubscriptionUpgradeBackup] (
+                    Id                    BIGINT PRIMARY KEY IDENTITY(1,1),
+                    Guid                  UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+                    CreatedAt             DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                    UpdatedAt             DATETIME2 NULL,
+                    Status                BIT NOT NULL DEFAULT 1,
+                    UserId                NVARCHAR(450) NOT NULL,
+                    SubscriptionId        NVARCHAR(100) NOT NULL,
+                    OldPriceId            NVARCHAR(100) NOT NULL,
+                    OldPeriodEnd          DATETIME2 NOT NULL,
+                    AttemptedNewPriceId   NVARCHAR(100) NULL,
+                    UpgradeStatus         NVARCHAR(50) NOT NULL DEFAULT 'Pending'
+
+                    CONSTRAINT FK_SubscriptionUpgradeBackup_AspNetUsers FOREIGN KEY (UserId)
+                    REFERENCES [AspNetUsers](Id) ON DELETE CASCADE
+                );
+END
         
         -- WebhookEvent  
         IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'WebhookEvent' AND type = 'U')
