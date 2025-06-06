@@ -55,6 +55,15 @@ public class UserRepository(AppDbContext context, ILogger<UserRepository> logger
             .FirstOrDefaultAsync();
     }
     
+    public async Task<long?> FindUserSubscriptionIdByUserIdAsync(string userId)
+    {
+        var subscription = await _userSubscription
+            .Where(us => us.UserId == userId && us.Status)
+            .FirstOrDefaultAsync();
+
+        return subscription?.Id;
+    }
+    
     public async Task<UserSubscription?> FindUserSubscriptionByIdAsync(long userSubscriptionId)
     {
         return await _userSubscription

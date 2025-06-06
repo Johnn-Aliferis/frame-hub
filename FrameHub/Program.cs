@@ -40,6 +40,11 @@ builder.Services.AddTransient<IPaymentSubscriptionService, PaymentSubscriptionSe
 builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<IStripeConsumerService, StripeConsumerService>();
 
+builder.Services.AddTransient<CustomerService>();
+builder.Services.AddTransient<SubscriptionService>();
+builder.Services.AddTransient<PaymentMethodService>();
+builder.Services.AddTransient<InvoiceService>();
+
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<ISubscriptionPlanRepository, SubscriptionPlanRepository>();

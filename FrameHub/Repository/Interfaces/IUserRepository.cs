@@ -10,6 +10,7 @@ public interface IUserRepository
     Task<ApplicationUser> SaveUserAsync(ApplicationUser user);
     Task<UserInfo?> FindUserInfoByUserIdAsync(string userId);
     Task<UserInfo> SaveUserInfoAsync(UserInfo userInfo);
+    Task<long?> FindUserSubscriptionIdByUserIdAsync(string userId);
     Task<UserSubscription?> FindUserSubscriptionByUserIdAsync(string userId);
     Task<UserSubscription?> FindUserSubscriptionByIdAsync(long userSubscriptionId);
     Task<UserSubscription?> FindUserSubscriptionByUserEmailAsync(string email);

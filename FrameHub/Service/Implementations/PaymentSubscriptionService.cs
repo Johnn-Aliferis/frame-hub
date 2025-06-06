@@ -28,7 +28,8 @@ public class PaymentSubscriptionService(
 
     public async Task DeleteSubscriptionAsync(long userSubscriptionId, string userId)
     {
-        // Todo : Lock resources per user -> Check given subscription Id and if it matches with the userId from JWT token .
+        await ValidateUserSubscriptionChangeAsync(userSubscriptionId, userId);
+        
         var subscriptionId = await userRepository.FindUserSubscriptionByIdAsync(userSubscriptionId);
         if (subscriptionId is null)
         {
@@ -42,6 +43,8 @@ public class PaymentSubscriptionService(
     public async Task UpdateSubscriptionAsync(long userSubscriptionId, string userId, string email,
         SubscriptionRequestDto subscriptionRequest)
     {
+        await ValidateUserSubscriptionChangeAsync(userSubscriptionId, userId);
+        
         // Future enhancement -> re-attach or update payment method and default method.
 
         var currentSubscription = await userRepository.FindUserSubscriptionByIdAsync(userSubscriptionId);
@@ -133,6 +136,22 @@ public class PaymentSubscriptionService(
         }
 
         return currentSubscription;
+    }
+    
+    private async Task ValidateUserSubscriptionChangeAsync(long subscriptionIdReceived, string userId)
+    {
+        var userSubscriptionId = await userRepository.FindUserSubscriptionIdByUserIdAsync(userId);
+
+        if (userSubscriptionId is null)
+        {
+            throw new GeneralException("Something went wrong", HttpStatusCode.BadRequest);
+        }
+
+        if (userSubscriptionId is not null && userSubscriptionId != subscriptionIdReceived)
+        {
+            throw new ValidationException("The provided subscription does not belong to the current user", HttpStatusCode.BadRequest);
+        }
+        
     }
 
     private async Task<string> GetOrCreateCustomerAsync(string userId, string email,
