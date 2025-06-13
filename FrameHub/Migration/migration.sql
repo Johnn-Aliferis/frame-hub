@@ -131,7 +131,7 @@
                 Status              BIT NOT NULL DEFAULT 1,
                 UserId              NVARCHAR(450) NOT NULL,
                 StorageUrl          NVARCHAR(2048) NOT NULL,
-                CdnUrl              NVARCHAR(2048) NOT NULL,
+                CdnUrl              NVARCHAR(2048) NULL,
                 Tags                NVARCHAR(500) NULL,
                 IsProfilePicture    BIT NOT NULL
 
@@ -219,6 +219,7 @@
                     Amount                 DECIMAL(10,2) NOT NULL,
                     Currency               NVARCHAR(10)  NULL,
                     InvoiceId              NVARCHAR(255) NULL,
+                    Description            NVARCHAR(255) NULL,
                     Description            NVARCHAR(255) NULL,
                     ReceiptUrl             NVARCHAR(2048) NULL,
                     PlanPriceId            NVARCHAR(50) NULL

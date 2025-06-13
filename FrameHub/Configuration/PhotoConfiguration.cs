@@ -21,7 +21,7 @@ public class PhotoConfiguration :  IEntityTypeConfiguration<Photo>
             .HasMaxLength(2048);
         
         builder.Property(p => p.CdnUrl)
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(2048);
         
         builder.Property(p => p.Tags)

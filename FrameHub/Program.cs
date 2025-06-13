@@ -114,6 +114,20 @@ builder.Services.AddAuthentication(options =>
         // options.SignInScheme = "External";
     });
 
+// TODO  : For multiple providers below -- can be used for factory pattern as well. 
+//builder.Services.AddTransient<AzureBlobUploadProvider>();
+// builder.Services.AddTransient<IUploadProvider>(sp =>
+// {
+//     var config = sp.GetRequiredService<IConfiguration>();
+//     var provider = config["UploadProvider"];
+//
+//     return provider switch
+//     {
+//         "Azure" => sp.GetRequiredService<AzureBlobUploadProvider>(),
+//         _ => throw new InvalidOperationException("Unknown or unsupported upload provider")
+//     };
+// });
+
 
 
 // Stripe Payments setup 
