@@ -220,7 +220,6 @@
                     Currency               NVARCHAR(10)  NULL,
                     InvoiceId              NVARCHAR(255) NULL,
                     Description            NVARCHAR(255) NULL,
-                    Description            NVARCHAR(255) NULL,
                     ReceiptUrl             NVARCHAR(2048) NULL,
                     PlanPriceId            NVARCHAR(50) NULL
                 

@@ -1,6 +1,6 @@
 ﻿namespace FrameHub.Enum;
 
-public enum SsoProvider
+public enum SsoProviderEnum
 {
     Google,
     // Microsoft

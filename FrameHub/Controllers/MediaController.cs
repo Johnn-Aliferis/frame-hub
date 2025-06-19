@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using FrameHub.Service.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,7 @@ namespace FrameHub.Controllers;
 
 [ApiController]
 [Route("api/media")]
-public class MediaController : ControllerBase
+public class MediaController(IMediaService mediaService) : ControllerBase
 {
     [HttpPost]
     [Route("upload-url")]
@@ -21,9 +22,8 @@ public class MediaController : ControllerBase
         {
             return Unauthorized("User claims missing or invalid.");
         }
-        
-        // todo : Add class implementation here 
-        return Ok("Presigned URL : temp");
+        var generatedUrl = await mediaService.GeneratePresignedUrl(userId, email);
+        return Ok(generatedUrl);
     }
     
     [HttpPost]

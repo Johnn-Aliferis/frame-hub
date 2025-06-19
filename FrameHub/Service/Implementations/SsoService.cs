@@ -27,7 +27,7 @@ public class SsoService(
             throw new SsoException("Provider is required", HttpStatusCode.BadRequest);
         }
 
-        if (!System.Enum.GetNames(typeof(SsoProvider))
+        if (!System.Enum.GetNames(typeof(SsoProviderEnum))
                 .Any(name => name.Equals(provider, StringComparison.OrdinalIgnoreCase)))
 
         {
