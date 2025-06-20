@@ -130,8 +130,9 @@
                 UpdatedAt           DATETIME2 NULL,
                 Status              BIT NOT NULL DEFAULT 1,
                 UserId              NVARCHAR(450) NOT NULL,
-                StorageUrl          NVARCHAR(2048) NOT NULL,
+                StorageUrl          NVARCHAR(2048) NULL,
                 CdnUrl              NVARCHAR(2048) NULL,
+                UploadState         NVARCHAR(50)  NOT NULL,
                 Tags                NVARCHAR(500) NULL,
                 IsProfilePicture    BIT NOT NULL
 

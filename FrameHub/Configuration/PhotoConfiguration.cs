@@ -17,7 +17,7 @@ public class PhotoConfiguration :  IEntityTypeConfiguration<Photo>
             .HasMaxLength(450);
         
         builder.Property(p => p.StorageUrl)
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(2048);
         
         builder.Property(p => p.CdnUrl)
@@ -27,6 +27,10 @@ public class PhotoConfiguration :  IEntityTypeConfiguration<Photo>
         builder.Property(p => p.Tags)
             .IsRequired(false)
             .HasMaxLength(500);
+        
+        builder.Property(p => p.UploadState)
+            .IsRequired(false)
+            .HasMaxLength(50);
 
         builder.Property(p => p.IsProfilePicture)
             .IsRequired();

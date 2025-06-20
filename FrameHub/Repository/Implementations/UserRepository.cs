@@ -26,7 +26,6 @@ public class UserRepository(AppDbContext context, ILogger<UserRepository> logger
             .Where(u => u.Email == email && u.Status)
             .FirstOrDefaultAsync();
     }
-
     public async Task<ApplicationUser> SaveUserAsync(ApplicationUser user)
     {
         await _user.AddAsync(user);
