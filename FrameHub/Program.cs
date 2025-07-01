@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text;
+using Amazon.S3;
+using Amazon.Extensions.NETCore.Setup;
 using DotNetEnv;
 using FrameHub.ContextConfiguration;
 using FrameHub.Exceptions;
@@ -39,6 +41,12 @@ builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 builder.Services.AddTransient<IPaymentSubscriptionService, PaymentSubscriptionService>();
 builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<IStripeConsumerService, StripeConsumerService>();
+builder.Services.AddTransient<IPhotoRepository, PhotoRepository>();
+builder.Services.AddTransient<IMediaService, MediaService>();
+builder.Services.AddTransient<IUploadProvider, AmazonS3Provider>();
+
+builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+builder.Services.AddAWSService<IAmazonS3>();
 
 builder.Services.AddTransient<CustomerService>();
 builder.Services.AddTransient<SubscriptionService>();
