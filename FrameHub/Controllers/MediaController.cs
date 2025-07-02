@@ -14,7 +14,7 @@ public class MediaController(IMediaService mediaService) : ControllerBase
     [HttpPost]
     [Route("presigned-url")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public async Task<IActionResult> GeneratePresignedUrl()
+    public async Task<IActionResult> GeneratePresignedUrl([FromBody] PresignedUrlRequestDto presignedUrlRequestDto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -23,7 +23,7 @@ public class MediaController(IMediaService mediaService) : ControllerBase
         {
             return Unauthorized("User claims missing or invalid.");
         }
-        var generatedUrl = await mediaService.GeneratePresignedUrl(userId, email);
+        var generatedUrl = await mediaService.GeneratePresignedUrl(userId, presignedUrlRequestDto);
         return Created(string.Empty, generatedUrl);
     }
     

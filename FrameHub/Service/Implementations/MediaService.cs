@@ -16,7 +16,7 @@ public class MediaService(
     ISubscriptionPlanRepository subscriptionPlanRepository,
     IPhotoRepository photoRepository) : IMediaService
 {
-    public async Task<string> GeneratePresignedUrl(string userId, string email)
+    public async Task<string> GeneratePresignedUrl(string userId, PresignedUrlRequestDto presignedUrlRequestDto)
     {
         var userSubscription = await userRepository.FindUserSubscriptionByUserIdAsync(userId);
         if (userSubscription is null || userSubscription.SubscriptionPlanId == (long)SubscriptionPlanId.Basic)
@@ -34,7 +34,7 @@ public class MediaService(
         // OPTIONAL : For future enhancment , add some sort of locking , to prevent abuse
         // OPTIONAL : For future enhancment , use cache mechanism to avoid unnecessary calls to find MaxUploadsAllowed.(i.e Redis)
         
-        return await uploadProvider.GeneratePresignedUrl(userId);
+        return await uploadProvider.GeneratePresignedUrl(userId, presignedUrlRequestDto.FileName);
     }
 
     public async Task DeleteImage(string userId, long photoId)
