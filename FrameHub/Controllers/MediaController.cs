@@ -12,7 +12,7 @@ namespace FrameHub.Controllers;
 public class MediaController(IMediaService mediaService) : ControllerBase
 {
     [HttpPost]
-    [Route("presigned")]
+    [Route("presigned-url")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> GeneratePresignedUrl()
     {
@@ -53,8 +53,8 @@ public class MediaController(IMediaService mediaService) : ControllerBase
         {
             return Unauthorized("User claims missing or invalid.");
         }
-        
-        // todo : Add class implementation here 
-        return Ok("Image successfully deleted");
+
+        await mediaService.DeleteImage(userId, photoId);
+        return NoContent();
     }
 }

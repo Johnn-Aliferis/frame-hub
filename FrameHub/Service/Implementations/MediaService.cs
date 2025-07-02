@@ -37,13 +37,11 @@ public class MediaService(
         return await uploadProvider.GeneratePresignedUrl(userId);
     }
 
-    public Task<string> DeleteImage(string url)
+    public async Task DeleteImage(string userId, long photoId)
     {
-        // validate with storage key , and also validate via DB that this userId corresponds to this image.
-        // After successful validation , call provider for deletion.
-        // Update our DB to remove this photo from our Users etc foreign keys ,
-        // Finally return message deleted or failed to delete.
-        throw new NotImplementedException();
+        var photo = await photoRepository.FindPhotoById(photoId);
+        ValidatePhotoDeletionRequest(photo, userId);
+        await uploadProvider.DeleteMedia(photo.StorageKey);
     }
 
     public async Task<PhotoResponseDto> ConfirmMediaUploadAsync(string userId, PhotoRequestDto photoRequestDto)
@@ -65,5 +63,19 @@ public class MediaService(
         
         var savedPhoto = await photoRepository.SavePhotoAsync(photo);
         return  mapper.Map<PhotoResponseDto>(savedPhoto);
+    }
+
+
+    private static void ValidatePhotoDeletionRequest(Photo photo, string userId)
+    {
+        if (photo is null)
+        {
+            throw new MediaException("Could not find photo in database.", HttpStatusCode.BadRequest);
+        }
+
+        if (photo.UserId != userId)
+        {
+            throw new MediaException("The provided image storage key is not associated with this user.", HttpStatusCode.BadRequest);
+        }
     }
 }

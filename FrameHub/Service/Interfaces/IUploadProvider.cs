@@ -3,6 +3,6 @@
 public interface IUploadProvider
 {
     Task<string> GeneratePresignedUrl(string userId);
-    Task<string> DeleteMedia(string url);
+    Task DeleteMedia(string storageKey);
     string ProviderId { get; }
 }

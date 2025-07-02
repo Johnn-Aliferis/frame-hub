@@ -11,11 +11,7 @@ public class AmazonS3Provider(IAmazonS3 amazonS3) : IUploadProvider
     private readonly string? _bucketName = Environment.GetEnvironmentVariable("S3_BUCKET_NAME");
     public async Task<string> GeneratePresignedUrl(string userId)
     {
-        if (_bucketName is null)
-        {
-            throw new GeneralException("Environmental variable not set for S3 bucket", HttpStatusCode.InternalServerError);
-        }
-
+        ValidateBucketName();
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _bucketName,
@@ -27,10 +23,26 @@ public class AmazonS3Provider(IAmazonS3 amazonS3) : IUploadProvider
         return await amazonS3.GetPreSignedURLAsync(request);
     }
 
-    public Task<string> DeleteMedia(string url)
+    public async Task DeleteMedia(string storageKey)
     {
-        throw new NotImplementedException();
+        ValidateBucketName();
+        
+        var deleteRequest = new DeleteObjectRequest
+        {
+            BucketName = _bucketName,
+            Key = storageKey
+        };
+        
+        await amazonS3.DeleteObjectAsync(deleteRequest);
     }
 
     public string ProviderId => "AmazonS3";
+
+    private void ValidateBucketName()
+    {
+        if (_bucketName is null)
+        {
+            throw new GeneralException("Environmental variable not set for S3 bucket", HttpStatusCode.InternalServerError);
+        }
+    }
 }

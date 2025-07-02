@@ -6,6 +6,6 @@ namespace FrameHub.Service.Interfaces;
 public interface IMediaService
 {
     Task<string> GeneratePresignedUrl(string userId, string userEmail);
-    Task<string> DeleteImage(string url);
-    Task<PhotoResponseDto> ConfirmMediaUploadAsync(string userId, PhotoRequestDto photoRequest); // todo :yup ,  should this return PhotoResponseDTo for front end ?
+    Task DeleteImage(string userId, long photoId);
+    Task<PhotoResponseDto> ConfirmMediaUploadAsync(string userId, PhotoRequestDto photoRequest);
 }
