@@ -8,5 +8,6 @@ public static class AutoMapperExtensions
     {
         // Add Automapper config here...
         services.AddAutoMapper(typeof(UserSubscription));
+        services.AddAutoMapper(typeof(Photo));
     }
 }

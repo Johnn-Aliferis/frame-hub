@@ -11,5 +11,5 @@ public class PhotoRequestDto
     [Required]
     public bool IsProfilePicture { get; set; }
     
-    public string[] Tags { get; set; } = [];
+    public string? Tags { get; set; }
 }

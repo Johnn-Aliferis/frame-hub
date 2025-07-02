@@ -31,4 +31,6 @@ public class AmazonS3Provider(IAmazonS3 amazonS3) : IUploadProvider
     {
         throw new NotImplementedException();
     }
+
+    public string ProviderId => "AmazonS3";
 }

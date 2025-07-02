@@ -16,7 +16,7 @@ public class StripeService(
         {
             Email = email,
             Metadata = new Dictionary<string, string> { { "userId", userId } },
-            TestClock = "clock_1RX0eBCQhowdgEANmhLHU4XA"
+            TestClock = "clock_1RgM5bCQhowdgEANycfepNSk" // testing only
         });
 
         return customer.Id;

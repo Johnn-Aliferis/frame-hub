@@ -38,7 +38,6 @@ public class MediaController(IMediaService mediaService) : ControllerBase
         {
             return Unauthorized("User claims missing or invalid.");
         }
-
         var createdMedia = await mediaService.ConfirmMediaUploadAsync(userId, photoRequestDto);
         return Created(string.Empty, createdMedia);
     }

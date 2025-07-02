@@ -1,13 +1,16 @@
 ﻿using System.Net;
+using AutoMapper;
 using FrameHub.Enum;
 using FrameHub.Exceptions;
 using FrameHub.Model.Dto.Media;
+using FrameHub.Model.Entities;
 using FrameHub.Repository.Interfaces;
 using FrameHub.Service.Interfaces;
 
 namespace FrameHub.Service.Implementations;
 
 public class MediaService(
+    IMapper mapper,
     IUploadProvider uploadProvider,
     IUserRepository userRepository,
     ISubscriptionPlanRepository subscriptionPlanRepository,
@@ -36,24 +39,31 @@ public class MediaService(
 
     public Task<string> DeleteImage(string url)
     {
-        // get identification from UI , also userId from JWT ,
-        // Of course try to see if user has this specific photo associated with him
+        // validate with storage key , and also validate via DB that this userId corresponds to this image.
         // After successful validation , call provider for deletion.
         // Update our DB to remove this photo from our Users etc foreign keys ,
         // Finally return message deleted or failed to delete.
         throw new NotImplementedException();
     }
 
-    public Task<string> ConfirmMediaUploadAsync(string userId, PhotoRequestDto photoRequestDto)
+    public async Task<PhotoResponseDto> ConfirmMediaUploadAsync(string userId, PhotoRequestDto photoRequestDto)
     {
-        // Get confirmation or failure from front end. -- Front end only calls if successful.
-        // If true persist to db foreign key to user etc so as to make the relationships.
-        // Return created.
+        if(!photoRequestDto.StorageKey.StartsWith($"uploads/{userId}/"))
+        {
+            throw new MediaException("Wrong storage key provided", HttpStatusCode.BadRequest);
+        }
+
+        var photo = new Photo
+        {
+            UserId = userId,
+            FileName = photoRequestDto.FileName,
+            StorageKey = photoRequestDto.StorageKey,
+            Tags = photoRequestDto.Tags,
+            IsProfilePicture = photoRequestDto.IsProfilePicture,
+            Provider = uploadProvider.ProviderId // Dynamic , according to which provider is selected.
+        };
         
-        
-        // Also , figure out how do we get the active provider, i.e runtime etc? and save it here too.
-        // Create necessary relationships etc.
-        // validate that this confirmation tries to alter the users correct resources etc
-        throw new NotImplementedException();
+        var savedPhoto = await photoRepository.SavePhotoAsync(photo);
+        return  mapper.Map<PhotoResponseDto>(savedPhoto);
     }
 }
