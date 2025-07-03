@@ -10,6 +10,7 @@ public static class ExceptionHandlerExtensions
         services.AddSingleton<IExceptionHandler, RegistrationExceptionHandler>();
         services.AddSingleton<IExceptionHandler, LoginExceptionHandler>();
         services.AddSingleton<IExceptionHandler, MediaExceptionHandler>();
+        services.AddSingleton<IExceptionHandler, ProviderExceptionHandler>();
         
         services.AddSingleton<ExceptionHandlingStrategy>();
     }

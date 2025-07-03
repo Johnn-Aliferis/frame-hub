@@ -15,6 +15,9 @@ public class StripeWebhookController(
 {
     private readonly string _webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")!;
 
+    /// <summary>
+    /// Controller method to handle webhook events sent by Stripe. 
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> HandleWebhook()
     {
@@ -47,6 +50,6 @@ public class StripeWebhookController(
             await channel.CloseAsync();
         }
 
-        return Ok();
+        return Ok(new { status = "received" });
     }
 }

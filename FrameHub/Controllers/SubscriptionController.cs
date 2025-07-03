@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+﻿using FrameHub.ActionFilters;
 using FrameHub.Model.Dto.Subscription;
 using FrameHub.Service.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,54 +11,47 @@ namespace FrameHub.Controllers;
 [Route("api/subscriptions")]
 public class SubscriptionController(IPaymentSubscriptionService paymentSubscriptionService) : ControllerBase
 {
+    /// <summary>
+    /// Creates a user subscription.Includes creating a user in stripe , attaching payment method and paying.
+    /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public async Task<IActionResult> CreateSubscription([FromBody] SubscriptionRequestDto subscriptionRequestDto)
+    [UserClaim]
+    public async Task<ActionResult<UserSubscriptionDto>> CreateSubscription([FromBody] SubscriptionRequestDto subscriptionRequestDto)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        var userId = HttpContext.Items["UserId"] as string;
+        var email = HttpContext.Items["Email"] as string;
         
-        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
-        {
-            return Unauthorized("User claims missing or invalid.");
-        }
-        
-        var userSubscription =  await paymentSubscriptionService.CreateSubscriptionAsync(userId, email, subscriptionRequestDto);
-        
-        return Ok(userSubscription);
+        var userSubscription =  await paymentSubscriptionService.CreateSubscriptionAsync(userId!, email!, subscriptionRequestDto);
+        return Created(string.Empty,userSubscription);
     }
     
+    /// <summary>
+    /// Updates a user's subscription. Can either be downgraded or upgraded.
+    /// </summary>
     [HttpPut("{userSubscriptionId:long}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [UserClaim]
     public async Task<IActionResult> UpdateSubscription(long userSubscriptionId, [FromBody] SubscriptionRequestDto subscriptionRequestDto)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        var userId = HttpContext.Items["UserId"] as string;
+        var email = HttpContext.Items["Email"] as string;
         
-        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
-        {
-            return Unauthorized("User claims missing or invalid.");
-        }
+        await paymentSubscriptionService.UpdateSubscriptionAsync(userSubscriptionId,userId!, email!, subscriptionRequestDto);
         
-        await paymentSubscriptionService.UpdateSubscriptionAsync(userSubscriptionId,userId, email, subscriptionRequestDto);
-        
-        return Ok("Subscription update request succeeded, you will soon be notified via email");
+        return Accepted(new { message = "Subscription update is in progress. You’ll be notified when it’s complete." });
     }
     
-    
+    /// <summary>
+    /// Delete a user's subscription. Treated as downgrade to basic plan.
+    /// </summary>
     [HttpDelete("{userSubscriptionId:long}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [UserClaim]
     public async Task<IActionResult> DeleteSubscription(long userSubscriptionId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var email = User.FindFirst(ClaimTypes.Email)?.Value;
-        
-        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
-        {
-            return Unauthorized("User claims missing or invalid.");
-        }
-        
-        await paymentSubscriptionService.DeleteSubscriptionAsync(userSubscriptionId, userId);
-        return Ok("Subscription will be cancelled at the end of the current billing cycle. You may continue using your features until date is due");
+        var userId = HttpContext.Items["UserId"] as string;
+        await paymentSubscriptionService.DeleteSubscriptionAsync(userSubscriptionId, userId!);
+        return Accepted(new { message = "Subscription cancellation scheduled. Your access remains until the end of the billing cycle." });
     }
 }

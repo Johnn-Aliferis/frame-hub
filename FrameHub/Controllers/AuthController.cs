@@ -12,19 +12,25 @@ namespace FrameHub.Controllers;
 [Route("api/auth")]
 public class AuthController(ILoginService loginService, IRegistrationService registrationService) : ControllerBase
 {
+    /// <summary>
+    /// Logs in the user and returns a JWT token.
+    /// </summary>
     [HttpPost]
     [Route("login")]
     [AllowAnonymous]
-    public async Task<ActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
+    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto loginRequestDto)
     {
         var response = await loginService.LoginDefaultAsync(loginRequestDto);
         return Ok(response);
     }
 
+    /// <summary>
+    /// Register a new user.
+    /// </summary>
     [HttpPost]
     [Route("register")]
     [AllowAnonymous]
-    public async Task<ActionResult> Register([FromBody] DefaultRegistrationRequestDto defaultRegistrationRequestDto)
+    public async Task<ActionResult<LoginResponseDto>> Register([FromBody] DefaultRegistrationRequestDto defaultRegistrationRequestDto)
     {
         var response = await registrationService.RegisterDefaultAsync(defaultRegistrationRequestDto);
         return Ok(response);

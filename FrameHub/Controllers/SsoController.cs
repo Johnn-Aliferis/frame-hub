@@ -10,6 +10,9 @@ namespace FrameHub.Controllers;
 [Route("api/sso/{provider}")]
 public class SsoController(ISsoService ssoService) : ControllerBase
 {
+    /// <summary>
+    /// Method for starting sso flow.
+    /// </summary>
     [HttpGet("start")]
     [AllowAnonymous]
     public IActionResult StartSso(string provider)
@@ -18,6 +21,9 @@ public class SsoController(ISsoService ssoService) : ControllerBase
         return Challenge(ssoChallengeHandler.Properties, ssoChallengeHandler.Provider);
     }
 
+    /// <summary>
+    /// Callback method that sso provider calls back.
+    /// </summary>
     [HttpGet("callback", Name = "SsoCallback")]
     [AllowAnonymous]
     public async Task<ActionResult> Register([FromRoute] string provider)

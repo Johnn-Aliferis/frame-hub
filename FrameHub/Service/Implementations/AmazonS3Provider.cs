@@ -2,14 +2,14 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using FrameHub.Exceptions;
-using FrameHub.Model.Dto.Media;
 using FrameHub.Service.Interfaces;
 
 namespace FrameHub.Service.Implementations;
 
-public class AmazonS3Provider(IAmazonS3 amazonS3) : IUploadProvider
+public class AmazonS3Provider(IAmazonS3 amazonS3, ILogger logger) : IUploadProvider
 {
     private readonly string? _bucketName = Environment.GetEnvironmentVariable("S3_BUCKET_NAME");
+
     public async Task<string> GeneratePresignedUrl(string userId, string fileName)
     {
         ValidateBucketName();
@@ -18,23 +18,38 @@ public class AmazonS3Provider(IAmazonS3 amazonS3) : IUploadProvider
             BucketName = _bucketName,
             Key = $"uploads/{userId}/{Guid.NewGuid()}_{fileName}",
             Expires = DateTime.UtcNow.AddMinutes(5),
-            Verb =  HttpVerb.PUT
+            Verb = HttpVerb.PUT
         };
-        
-        return await amazonS3.GetPreSignedURLAsync(request);
+
+        try
+        {
+            return await amazonS3.GetPreSignedURLAsync(request);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("A Provider Exception occured during presigned url creation. Original message : {}", ex.Message);
+            throw new ProviderException("Provider could not generate presigned Url", HttpStatusCode.InternalServerError);
+        }
     }
 
     public async Task DeleteMedia(string storageKey)
     {
         ValidateBucketName();
-        
+
         var deleteRequest = new DeleteObjectRequest
         {
             BucketName = _bucketName,
             Key = storageKey
         };
-        
-        await amazonS3.DeleteObjectAsync(deleteRequest);
+        try
+        {
+            await amazonS3.DeleteObjectAsync(deleteRequest);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("A Provider Exception occured during Deletion request. Original message : {}", ex.Message);
+            throw new ProviderException("Provider could not complete deletion request", HttpStatusCode.InternalServerError);
+        }
     }
 
     public string ProviderId => "AmazonS3";
@@ -43,7 +58,8 @@ public class AmazonS3Provider(IAmazonS3 amazonS3) : IUploadProvider
     {
         if (_bucketName is null)
         {
-            throw new GeneralException("Environmental variable not set for S3 bucket", HttpStatusCode.InternalServerError);
+            throw new GeneralException("Environmental variable not set for S3 bucket",
+                HttpStatusCode.InternalServerError);
         }
     }
 }
