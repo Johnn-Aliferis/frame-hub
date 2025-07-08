@@ -4,9 +4,9 @@ namespace FrameHub.Modules.Auth.API.DTO;
 
 public class DefaultRegistrationRequestDto : IRegistrationInfo
 {
-    [Required]
-    [AllowedValues("default", "sso")]
-    public required string RegistrationMethod { get; set; }
+    // [Required]
+    // [AllowedValues("default", "sso")]
+    // public required string RegistrationMethod { get; set; }
     
     [Required]
     [EmailAddress(ErrorMessage = "Invalid email format")]

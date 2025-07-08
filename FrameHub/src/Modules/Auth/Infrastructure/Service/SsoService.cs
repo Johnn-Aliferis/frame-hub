@@ -28,7 +28,7 @@ public class SsoService(
                 .Any(name => name.Equals(provider, StringComparison.OrdinalIgnoreCase)))
 
         {
-            throw new SsoException($"Unsupported provider", HttpStatusCode.BadRequest);
+            throw new SsoException("Unsupported provider", HttpStatusCode.BadRequest);
         }
 
         var redirectUrl = url.Action(

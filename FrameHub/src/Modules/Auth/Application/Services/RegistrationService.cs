@@ -47,7 +47,7 @@ public class RegistrationService(
         {
             await unitOfWork.RollbackAsync();
             logger.LogError(ex, "An error occurred during user registration.");
-            throw new RegistrationException(ex.Message, HttpStatusCode.InternalServerError);
+            throw;
         }
     }
 

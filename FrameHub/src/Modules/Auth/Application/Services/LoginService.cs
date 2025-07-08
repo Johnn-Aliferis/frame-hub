@@ -16,11 +16,6 @@ public class LoginService(
         var result = await
             signInManager.PasswordSignInAsync(loginRequestDto.Email, loginRequestDto.Password, false, false);
 
-        if (!result.Succeeded)
-        {
-            throw new LoginException("Invalid email/password. Please try again", HttpStatusCode.Unauthorized);
-        }
-
         if (result.IsLockedOut)
         {
             throw new LoginException("Account is locked.", HttpStatusCode.Forbidden);
@@ -34,6 +29,11 @@ public class LoginService(
         if (result.RequiresTwoFactor)
         {
             throw new LoginException("Two-factor authentication required.", HttpStatusCode.Forbidden);
+        }
+        
+        if (!result.Succeeded)
+        {
+            throw new LoginException("Invalid email/password. Please try again", HttpStatusCode.Unauthorized);
         }
 
         var user = await userRepository.FindUserByEmailAsync(loginRequestDto.Email);

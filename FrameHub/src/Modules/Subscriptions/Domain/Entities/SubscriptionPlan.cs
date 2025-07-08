@@ -13,5 +13,5 @@ public class SubscriptionPlan : BaseEntity
     public decimal MonthlyPrice { get; set; }
     public int PlanOrder { get; set; }
     
-    public virtual required UserSubscription UserSubscription { get; set; }
+    public virtual UserSubscription? UserSubscription { get; set; }
 }
