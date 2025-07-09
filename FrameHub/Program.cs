@@ -33,10 +33,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-if (builder.Environment.IsDevelopment())
-{
-    Env.Load();
-}
+Env.Load();
 
 // Later to be added in extensions :
 builder.Services.AddTransient<ILoginService, LoginService>();
@@ -187,3 +184,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }
