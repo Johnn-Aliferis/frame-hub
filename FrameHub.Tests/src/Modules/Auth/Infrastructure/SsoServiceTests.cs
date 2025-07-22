@@ -144,7 +144,7 @@ public class SsoServiceTests
         Assert.Equal(HttpStatusCode.BadRequest, exception.Status);
     }
     
-    private AuthenticateResult CreateAuthenticateResult(string email, string provider, string providerKey)
+    private static AuthenticateResult CreateAuthenticateResult(string email, string provider, string providerKey)
     {
         var claims = new List<Claim>
         {
