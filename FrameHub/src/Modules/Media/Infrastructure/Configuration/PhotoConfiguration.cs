@@ -1,4 +1,4 @@
-﻿using FrameHub.Modules.Media.Domain.Entity;
+﻿using FrameHub.Modules.Media.Domain.Entities;
 using FrameHub.Modules.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

@@ -1,5 +1,5 @@
 ﻿using FrameHub.Modules.Media.Application.Service;
-using FrameHub.Modules.Media.Domain.Entity;
+using FrameHub.Modules.Media.Domain.Entities;
 using FrameHub.Modules.Shared.Extensions;
 using FrameHub.Modules.Shared.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

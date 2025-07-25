@@ -1,4 +1,4 @@
-﻿using FrameHub.Modules.Media.Domain.Entity;
+﻿using FrameHub.Modules.Media.Domain.Entities;
 using FrameHub.Modules.Subscriptions.Domain.Entities;
 
 namespace FrameHub.Modules.Shared.Extensions;

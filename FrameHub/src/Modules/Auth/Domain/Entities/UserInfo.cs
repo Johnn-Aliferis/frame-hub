@@ -1,4 +1,4 @@
-﻿using FrameHub.Modules.Media.Domain.Entity;
+﻿using FrameHub.Modules.Media.Domain.Entities;
 using FrameHub.Modules.Shared.Domain.Entity;
 
 namespace FrameHub.Modules.Auth.Domain.Entities;

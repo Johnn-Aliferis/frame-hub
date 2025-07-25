@@ -3,7 +3,7 @@ using AutoMapper;
 using FrameHub.Modules.Auth.Application.Services;
 using FrameHub.Modules.Media.API.DTO;
 using FrameHub.Modules.Media.Application.Exception;
-using FrameHub.Modules.Media.Domain.Entity;
+using FrameHub.Modules.Media.Domain.Entities;
 using FrameHub.Modules.Subscriptions.Application.Service;
 using FrameHub.Modules.Subscriptions.Domain.Enum;
 

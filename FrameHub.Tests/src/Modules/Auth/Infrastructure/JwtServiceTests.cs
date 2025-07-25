@@ -26,7 +26,6 @@ public class JwtServiceTests
     [Fact]
     public void GenerateJwtToken_ShouldThrow_WhenSecretIsMissing()
     {
-        // Arrange
         Environment.SetEnvironmentVariable("JWT_SECRET", null);
         var options = Options.Create(new JwtSettingsOptions
         {

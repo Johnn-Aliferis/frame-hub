@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using FrameHub.Modules.Media.API.DTO;
@@ -53,5 +52,4 @@ public class MediaControllerTests(WebApplicationFactory<Program> factory) : ICla
         var response = await _client.DeleteAsync($"/api/media/{photoId}");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-    
 }

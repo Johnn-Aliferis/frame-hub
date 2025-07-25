@@ -1,5 +1,5 @@
 ﻿using FrameHub.Modules.Media.API.DTO;
-using FrameHub.Modules.Media.Domain.Entity;
+using FrameHub.Modules.Media.Domain.Entities;
 
 namespace FrameHub.Modules.Media.API.Profile;
 
