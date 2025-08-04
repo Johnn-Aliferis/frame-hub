@@ -1,0 +1,35 @@
+﻿services:
+#  framehub:
+#    image: framehub
+#    build:
+#      context: .
+#      dockerfile: FrameHub/Dockerfile
+  
+  frame-hub-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: frame-hub-db
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    environment:
+      - ACCEPT_EULA=${ACCEPT_EULA}
+      - SA_PASSWORD=${SA_PASSWORD}
+      - MSSQL_PID=${MSSQL_PID}
+    ports:
+      - "1433:1433"
+    restart: unless-stopped
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     
+      - "15672:15672"   
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    
+volumes:
+  sqlserver_data:
+  rabbitmq_data:

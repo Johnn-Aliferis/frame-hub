@@ -1,6 +1,0 @@
-﻿services:
-  framehub:
-    image: framehub
-    build:
-      context: .
-      dockerfile: FrameHub/Dockerfile
