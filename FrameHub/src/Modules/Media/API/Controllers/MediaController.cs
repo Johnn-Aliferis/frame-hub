@@ -34,7 +34,7 @@ public class MediaController(IMediaService mediaService) : ControllerBase
     public async Task<ActionResult<PhotoResponseDto>> ConfirmUpload([FromBody] PhotoRequestDto photoRequestDto)
     {
         var userId = HttpContext.Items["UserId"] as string;
-        var createdMedia = await mediaService.ConfirmMediaUploadAsync(userId!, photoRequestDto);
+        var createdMedia = await mediaService.ConfirmMediaUploadAsync(userId!, photoRequestDto); // Todo : Add back end validation check of s3 that the file indeed has been uploaded and exists in provider.
         return Created(string.Empty, createdMedia);
     }
     
